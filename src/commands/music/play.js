@@ -17,13 +17,18 @@ module.exports = {
 
     /* Gets the voice channel where the member is in. If the member isn't in any, return. */
     const voiceChannel = interaction.member.voice.channel;
-    if (!voiceChannel)
+    if (!voiceChannel) {
       return interaction.reply({
         content: "You need to be in a voice channel!",
-        ephemeral: false,
-      });
-
-    /* Get more info about how the play command works at https://npmjs.com/package/@koenie06/discord.js-music#play */
+        ephemeral: true,
+      })
+    } else {
+      interaction.reply({
+        content: "Success <:pogU:895752102834470952>",
+        ephemeral: true,
+      })
+    }
+      /* Get more info about how the play command works at https://npmjs.com/package/@koenie06/discord.js-music#play */
     music.play({
       interaction: interaction,
       channel: voiceChannel,
