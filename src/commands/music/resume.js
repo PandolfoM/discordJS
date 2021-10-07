@@ -11,13 +11,13 @@ module.exports = {
         const isConnected = await music.isConnected({
             interaction: interaction
         });
-        if(!isConnected) return interaction.reply({ content: 'There are no songs playing', ephemeral: true });
+        if(!isConnected) return interaction.reply({ content: 'There are no songs playing', ephemeral: false });
 
         /* Checking if the music is already resumed. If it is, return. */
         const isResumed = music.isResumed({
             interaction: interaction
         });
-        if(isResumed) return interaction.reply({ content: 'The song is already resumed', ephemeral: true });
+        if(isResumed) return interaction.reply({ content: 'The song is already resumed', ephemeral: false });
 
         /* Get more info about how the resume command works at https://npmjs.com/package/@koenie06/discord.js-music#resume */
         music.resume({

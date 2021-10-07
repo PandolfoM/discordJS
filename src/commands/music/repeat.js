@@ -19,7 +19,7 @@ module.exports = {
         const isConnected = await music.isConnected({
             interaction: interaction
         });
-        if(!isConnected) return interaction.reply({ content: 'There are no songs playing', ephemeral: true });
+        if(!isConnected) return interaction.reply({ content: 'There are no songs playing', ephemeral: false });
 
         /* Checking if the music is already repeated. If it is, return. */
         const isRepeated = music.isRepeated({

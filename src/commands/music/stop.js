@@ -11,13 +11,13 @@ module.exports = {
         const isConnected = await music.isConnected({
             interaction: interaction
         });
-        if(!isConnected) return interaction.reply({ content: 'There are no songs playing', ephemeral: true });
+        if(!isConnected) return interaction.reply({ content: 'There are no songs playing', ephemeral: false });
 
 		/* Checking if there is music playing or not. If there isn't, return. */
 		const queue = music.getQueue({
 			interaction: interaction
 		});
-		if(queue.length === 0) return interaction.reply({ content: 'No music is playing', ephemeral: true });
+		if(queue.length === 0) return interaction.reply({ content: 'No music is playing', ephemeral: false });
 
         /* Get more info about how the stop command works at https://npmjs.com/package/@koenie06/discord.js-music#stop */
         music.stop({

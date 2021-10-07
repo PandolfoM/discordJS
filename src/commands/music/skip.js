@@ -11,7 +11,7 @@ module.exports = {
         const isConnected = await music.isConnected({
             interaction: interaction
         });
-        if(!isConnected) return interaction.reply({ content: 'There are no songs playing', ephemeral: true });
+        if(!isConnected) return interaction.reply({ content: 'There are no songs playing', ephemeral: false });
 
         /* Get more info about how the skip command works at https://npmjs.com/package/@koenie06/discord.js-music#skip */
         music.skip({

@@ -19,13 +19,13 @@ module.exports = {
         const isConnected = await music.isConnected({
             interaction: interaction
         });
-        if(!isConnected) return interaction.reply({ content: 'There are no songs playing', ephemeral: true });
+        if(!isConnected) return interaction.reply({ content: 'There are no songs playing', ephemeral: false });
 
         /* Get the queue to check if the number exists. If it isn't, return. */
         const queue = await music.getQueue({
             interaction: interaction
         });
-        if(!queue[number - 1]) return interaction.reply({ content: 'That number of the queue doesn\'t exist', ephemeral: true });
+        if(!queue[number - 1]) return interaction.reply({ content: 'That number of the queue doesn\'t exist', ephemeral: false });
 
         /* Get more info about how the removeQueue command works at https://npmjs.com/package/@koenie06/discord.js-music#removequeue */
         music.removeQueue({

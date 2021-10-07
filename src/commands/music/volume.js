@@ -16,13 +16,16 @@ module.exports = {
         const volume = interaction.options.getInteger('volume');
 
         /* If the volume is higher than 100, return. */
-        if(volume > 100) return interaction.reply({ content: 'Can\'t go higher than 100%', ephemeral: true });
+        if(volume > 100) return interaction.reply({ content: 'Can\'t go higher than 100%', ephemeral: false });
+
+        /* If the volume is lower than 1, return. */
+        if(volume < 1) return interaction.reply({ content: 'Can\'t go lower than 1%', ephemeral: false });
 
         /* Checking if the bot is connected. If it isn't, return. */
         const isConnected = await music.isConnected({
             interaction: interaction
         });
-        if(!isConnected) return interaction.reply({ content: 'There are no songs playing', ephemeral: true });
+        if(!isConnected) return interaction.reply({ content: 'There are no songs playing', ephemeral: false });
 
         /* Get more info about how the volume command works at https://npmjs.com/package/@koenie06/discord.js-music#volume */
         music.volume({
