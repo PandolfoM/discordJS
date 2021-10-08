@@ -1,5 +1,4 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
-const { client } = require('../../bot')
 
 module.exports = {
   data: new SlashCommandBuilder().setName("cf").setDescription("Flips a coin"),
