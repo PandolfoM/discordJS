@@ -14,7 +14,6 @@ module.exports = {
   async execute(interaction) {
     /* This will get the song that has been provided */
     const song = interaction.options.getString("song");
-
     /* Gets the voice channel where the member is in. If the member isn't in any, return. */
     const voiceChannel = interaction.member.voice.channel;
     if (!voiceChannel) {
