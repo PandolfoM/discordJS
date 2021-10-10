@@ -1,4 +1,4 @@
-const { SlashCommandBuilder, time } = require("@discordjs/builders");
+const { SlashCommandBuilder } = require("@discordjs/builders");
 const {
   MessageEmbed,
   MessageAttachment,
