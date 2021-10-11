@@ -65,6 +65,10 @@ module.exports = {
             value: `${date}`,
           },
           {
+            name: `Owner:`,
+            value: `<@${interaction.guild.ownerId}>`,
+          },
+          {
             name: `Members:`,
             value: `${interaction.guild.memberCount}`,
           }

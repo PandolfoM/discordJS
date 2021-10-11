@@ -9,7 +9,8 @@ const {
 module.exports = {
   data: new SlashCommandBuilder().setName("dice").setDescription("Rolls a dice"),
   async execute(interaction) {
-    let roll = JSON.stringify(Math.floor(Math.random(1,6) * 6)+1);
+    let sides = ['1','2','3','4','5','6']
+    let roll = sides[Math.floor(Math.random() * sides.length)]
 
     console.log(roll)
     const userEmbed = new MessageEmbed()
