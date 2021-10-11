@@ -14,7 +14,10 @@ module.exports = {
         .setName("question")
         .setDescription("Question for 8 ball")
         .addStringOption((option) =>
-          option.setName("question").setDescription("Question for 8 ball")
+          option
+            .setName("question")
+            .setDescription("Question for 8 ball")
+            .setRequired(true)
         )
     ),
   async execute(interaction, option) {
