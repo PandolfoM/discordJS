@@ -5,7 +5,6 @@ const embed = new MessageEmbed()
   .setColor("RED")
   .setTitle("Pong!")
   .addFields({ name: "Latency:", value: "Calculating..." })
-  .setTimestamp();
 
 module.exports = {
   data: new SlashCommandBuilder()
