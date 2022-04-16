@@ -1,27 +1,22 @@
 {
-  "name": "thoomerjs",
+  "name": "epicans",
   "version": "1.0.0",
   "description": "",
-  "main": "bot.js",
+  "main": "index.js",
   "scripts": {
-    "test": "node src/bot.js",
-    "dev": "nodemon src/bot.js"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js",
+    "dev": "nodemon index.js",
+    "cmd": "node deploy-commands.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@discordjs/builders": "^0.6.0",
-    "@discordjs/opus": "^0.5.3",
-    "@discordjs/rest": "^0.1.0-canary.0",
-    "@discordjs/voice": "^0.6.0",
-    "@koenie06/discord.js-music": "^1.2.9",
-    "discord-api-types": "^0.23.1",
-    "discord.js": "^13.2.0",
-    "dotenv": "^10.0.0",
-    "ffmpeg-static": "^4.4.0",
-    "libsodium-wrappers": "^0.7.9",
-    "yt-search": "^2.10.1",
-    "ytdl-core": "^4.9.1"
+    "@discordjs/builders": "^0.12.0",
+    "@discordjs/rest": "^0.3.0",
+    "discord-api-types": "^0.31.1",
+    "discord.js": "^13.6.0",
+    "dotenv": "^16.0.0"
   }
 }
