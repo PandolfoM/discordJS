@@ -1,10 +1,5 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
-const {
-  MessageEmbed,
-  MessageAttachment,
-  GuildManager,
-  Guild,
-} = require("discord.js");
+const { MessageEmbed } = require("discord.js");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("hot")
@@ -17,14 +12,14 @@ module.exports = {
           option.setName("target").setDescription("The user mentioned")
         )
     ),
-  async execute(interaction, client) {
+  async execute(interaction) {
     if (interaction.options.getSubcommand() === "user") {
       const user = interaction.options.getUser("target");
 
       if (user) {
         const userEmbed = new MessageEmbed()
           .setColor("BLUE")
-          .setAuthor(`Hot Calculator`)
+          .setAuthor({name: `Hot Calculator`})
           .setThumbnail(user.avatarURL({ dynamic: true }))
           .addFields(
             {
@@ -41,7 +36,7 @@ module.exports = {
       } else {
         const userEmbed = new MessageEmbed()
           .setColor("BLUE")
-          .setAuthor(`Hot Calculator`)
+          .setAuthor({name: `Hot Calculator`})
           .setThumbnail(interaction.user.avatarURL({ dynamic: true }))
           .addFields(
             {

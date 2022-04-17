@@ -1,10 +1,5 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
-const {
-  MessageEmbed,
-  MessageAttachment,
-  GuildManager,
-  Guild,
-} = require("discord.js");
+const { MessageEmbed } = require("discord.js");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("sus")
@@ -24,7 +19,7 @@ module.exports = {
       if (user) {
         const userEmbed = new MessageEmbed()
           .setColor("BLUE")
-          .setAuthor(`Sus Calculator`)
+          .setAuthor({name: `Sus Calculator`})
           .setThumbnail(user.avatarURL({ dynamic: true }))
           .addFields(
             {
@@ -41,7 +36,7 @@ module.exports = {
       } else {
         const userEmbed = new MessageEmbed()
           .setColor("BLUE")
-          .setAuthor(`Sus Calculator`)
+          .setAuthor({name: `Sus Calculator`})
           .setThumbnail(interaction.user.avatarURL({ dynamic: true }))
           .addFields(
             {
