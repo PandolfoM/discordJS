@@ -2,24 +2,24 @@ const { SlashCommandBuilder } = require("@discordjs/builders");
 const { MessageEmbed } = require("discord.js");
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("hot")
-    .setDescription("Calculates how hot you are")
+    .setName("sus")
+    .setDescription("Calculates how sus you are")
     .addSubcommand((subcommand) =>
       subcommand
         .setName("user")
-        .setDescription("Calculate how hot another user is")
+        .setDescription("Calculate how sus another user is")
         .addUserOption((option) =>
           option.setName("target").setDescription("The user mentioned")
         )
     ),
-  async execute(interaction) {
+  async execute(interaction, client) {
     if (interaction.options.getSubcommand() === "user") {
       const user = interaction.options.getUser("target");
 
       if (user) {
         const userEmbed = new MessageEmbed()
           .setColor("BLUE")
-          .setAuthor({name: `Hot Calculator`})
+          .setAuthor({name: `Sus Calculator`})
           .setThumbnail(user.avatarURL({ dynamic: true }))
           .addFields(
             {
@@ -28,7 +28,7 @@ module.exports = {
             },
             {
               name: `Results:`,
-              value: calculateHot(user),
+              value: calculateSus(user),
             }
           );
 
@@ -36,7 +36,7 @@ module.exports = {
       } else {
         const userEmbed = new MessageEmbed()
           .setColor("BLUE")
-          .setAuthor({name: `Hot Calculator`})
+          .setAuthor({name: `Sus Calculator`})
           .setThumbnail(interaction.user.avatarURL({ dynamic: true }))
           .addFields(
             {
@@ -45,7 +45,7 @@ module.exports = {
             },
             {
               name: `Results:`,
-              value: calculateHot2(interaction),
+              value: calculateSus2(interaction),
             }
           );
 
@@ -57,38 +57,38 @@ module.exports = {
   },
 };
 
-function calculateHot(user) {
+function calculateSus(user) {
   let rng = Math.floor(Math.random() * 100);
 
   if (rng < 25) {
-    var emoji = "💔";
+    var emoji = "🧍‍♂️";
   }
   if (rng > 25) {
-    var emoji = "❤";
+    var emoji = "👬";
   }
   if (rng > 50) {
-    var emoji = "💖";
+    var emoji = "👨‍❤️‍👨";
   }
   if (rng > 75) {
-    var emoji = "💞";
+    var emoji = "👨‍❤️‍💋‍👨";
   }
-  return `${user.username} is **${rng}%** hot ${emoji}`;
+  return `${user.username} is **${rng}%** sus ${emoji}`;
 }
 
-function calculateHot2(interaction) {
+function calculateSus2(interaction) {
   let rng = Math.floor(Math.random() * 100);
 
   if (rng < 25) {
-    var emoji = "💔";
+    var emoji = "🧍‍♂️";
   }
   if (rng > 25) {
-    var emoji = "❤";
+    var emoji = "👬";
   }
   if (rng > 50) {
-    var emoji = "💖";
+    var emoji = "👨‍❤️‍👨";
   }
   if (rng > 75) {
-    var emoji = "💞";
+    var emoji = "👨‍❤️‍💋‍👨";
   }
-  return `${interaction.user.username} is **${rng}%** hot ${emoji}`;
+  return `${interaction.user.username} is **${rng}%** sus ${emoji}`;
 }
