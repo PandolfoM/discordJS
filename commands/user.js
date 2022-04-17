@@ -25,7 +25,6 @@ module.exports = {
       const guild = interaction.options.getMember("target");
 
       if (user) {
-        console.log(guild.roles.highest);
         const accCreated = user.createdTimestamp;
         const accJoined = guild.joinedTimestamp;
         let dateJoined = dayjs(accJoined).format("LLLL");

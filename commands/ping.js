@@ -2,7 +2,7 @@ const { SlashCommandBuilder } = require("@discordjs/builders");
 const { MessageEmbed } = require("discord.js");
 
 const embed = new MessageEmbed()
-  .setColor("RED")
+  .setColor("BLUE")
   .setTitle("Pong!")
   .addFields({ name: "Latency:", value: "Calculating..." })
 
@@ -11,7 +11,6 @@ module.exports = {
     .setName("ping")
     .setDescription("Replies with Pong!"),
   async execute(interaction) {
-    console.log(interaction);
     await interaction.reply({ embeds: [embed] });
     const message = await interaction.fetchReply();
     let pingms = Date.now() - message.createdTimestamp;
