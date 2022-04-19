@@ -4,7 +4,7 @@ module.exports = {
     if (message.content.toLowerCase() == "sybau") {
       message.reply("ciaboo*");
     }
-    else if (message.content == "<@!248910149442338816>") {
+    else if (message.content == "<@248910149442338816>") {
       message.reply('STFU RETARD + RATIO')
     }
   },
