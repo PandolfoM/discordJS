@@ -19,7 +19,7 @@ module.exports = {
       if (user) {
         const userEmbed = new MessageEmbed()
           .setColor("BLUE")
-          .setAuthor({name: `Hot Calculator`})
+          .setAuthor({name: 'Hot Calculator'})
           .setThumbnail(user.avatarURL({ dynamic: true }))
           .addFields(
             {
@@ -36,7 +36,7 @@ module.exports = {
       } else {
         const userEmbed = new MessageEmbed()
           .setColor("BLUE")
-          .setAuthor({name: `Hot Calculator`})
+          .setAuthor({name: 'Hot Calculator'})
           .setThumbnail(interaction.user.avatarURL({ dynamic: true }))
           .addFields(
             {

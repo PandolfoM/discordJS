@@ -1,6 +1,6 @@
 const { Client, Intents, Collection } = require("discord.js");
 const fs = require("fs");
-const client = new Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.GUILD_MESSAGES, Intents.FLAGS.GUILD_VOICE_STATES] });
+const client = new Client({ intents: 32767 });
 
 module.exports.client = client
 
@@ -23,4 +23,5 @@ const commandsFolders = fs.readdirSync("./src/commands");
   client.handleEvents(eventFiles, "./src/events");
   client.handleCommands(commandsFolders, "./src/commands");
   client.login(process.env.TOKEN);
+  client.dbLogin()
 })();
