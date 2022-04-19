@@ -2,9 +2,10 @@ const { Client, Intents, Collection } = require("discord.js");
 const fs = require("fs");
 const client = new Client({ intents: 32767 });
 
-module.exports.client = client
+module.exports.client = client;
 
 client.commands = new Collection();
+client.snipes = new Collection();
 
 require("dotenv").config();
 
@@ -23,5 +24,5 @@ const commandsFolders = fs.readdirSync("./src/commands");
   client.handleEvents(eventFiles, "./src/events");
   client.handleCommands(commandsFolders, "./src/commands");
   client.login(process.env.TOKEN);
-  client.dbLogin()
+  client.dbLogin();
 })();
