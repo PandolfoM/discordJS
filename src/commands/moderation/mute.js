@@ -23,7 +23,6 @@ module.exports = {
   permissions: [Permissions.FLAGS.MODERATE_MEMBERS],
   async execute(interaction) {
     const user = interaction.options.getUser("target");
-    const guild = interaction.options.getMember("target");
     const duration = Number(
       interaction.options.getString("duration") * 60 * 1000
     );
