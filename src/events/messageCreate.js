@@ -1,7 +1,7 @@
 module.exports = {
   name: "messageCreate",
   execute(message, client) {
-    if (message.content.toLowerCase() == "sybau") {
+    if (message.content.toLowerCase().includes("sybau")) {
       message.reply("ciaboo*");
     } else if (message.content.includes("https://www.facebook.com/marketplace")) {
       message.reply("<:batChest:899088881243283466>")
