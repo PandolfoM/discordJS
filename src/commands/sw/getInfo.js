@@ -29,7 +29,9 @@ module.exports = {
         .addFields(
           {
             name: `Name:`,
-            value: `${capitalize(characterProfile.fname)} ${capitalize(characterProfile.lname)}`,
+            value: `${capitalize(characterProfile.fname)} ${capitalize(
+              characterProfile.lname
+            )}`,
           },
           {
             name: `Weapon:`,
@@ -50,7 +52,45 @@ module.exports = {
           {
             name: `Affiliation:`,
             value: `${capitalize(characterProfile.affiliation)}`,
+          }
+        )
+        .setTimestamp();
+
+      if (
+        characterProfile.died.when !== "n/a" &&
+        characterProfile.died.who === "n/a"
+      ) {
+        embed.addFields(
+          {
+            name: `Death:`,
+            value: `\u200B`,
           },
+          {
+            name: `When:`,
+            value: `${capitalize(characterProfile.died.when)}`,
+            inline: true,
+          }
+        );
+      } else if (
+        characterProfile.died.when === "n/a" &&
+        characterProfile.died.who !== "n/a"
+      ) {
+        embed.addFields(
+          {
+            name: `Death:`,
+            value: `\u200B`,
+          },
+          {
+            name: `Who:`,
+            value: `${capitalize(characterProfile.died.who)}`,
+            inline: true,
+          }
+        );
+      } else if (
+        characterProfile.died.when !== "n/a" &&
+        characterProfile.died.who !== "n/a"
+      ) {
+        embed.addFields(
           {
             name: `Death:`,
             value: `\u200B`,
@@ -65,11 +105,12 @@ module.exports = {
             value: `${capitalize(characterProfile.died.who)}`,
             inline: true,
           }
-        )
-        .setTimestamp();
+        );
+      }
+
       interaction.reply({ embeds: [embed] });
     }
   },
 };
 
-const capitalize = ([first,...rest]) => first.toUpperCase() + rest.join('');
+const capitalize = ([first, ...rest]) => first.toUpperCase() + rest.join("");
