@@ -2,6 +2,7 @@ const mongoose = require("mongoose");
 const characterSchema = new mongoose.Schema({
   _id: mongoose.Schema.Types.ObjectId,
   guildId: String,
+  searchterm: String,
   img: String,
   fname: String,
   lname: String,

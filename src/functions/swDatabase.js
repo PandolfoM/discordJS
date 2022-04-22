@@ -5,7 +5,7 @@ module.exports = (client) => {
   client.findInfo = async (member, name) => {
     let characterProfile = await Character.findOne({
       guildId: member.guild.id,
-      fname: name,
+      searchterm: name,
     });
     if (characterProfile) {
       return characterProfile;
@@ -16,6 +16,7 @@ module.exports = (client) => {
 
   client.addInfo = async (
     member,
+    searchterm,
     img,
     fname,
     lname,
@@ -30,6 +31,7 @@ module.exports = (client) => {
   ) => {
     let characterProfile = await Character.insertMany({
       guildId: member.guild.id,
+      searchterm: searchterm,
       img: img,
       fname: fname,
       lname: lname,

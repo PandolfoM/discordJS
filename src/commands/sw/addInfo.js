@@ -6,6 +6,9 @@ module.exports = {
     .setName("swadd")
     .setDescription("Add information to the Star Wars database")
     .addStringOption((option) =>
+      option.setName("searchterm").setRequired(true).setDescription("Search Term")
+    )
+    .addStringOption((option) =>
       option.setName("img").setRequired(true).setDescription("Image")
     )
     .addStringOption((option) =>
@@ -48,10 +51,13 @@ module.exports = {
       option.setName("color").setRequired(true).setDescription("Color of embed")
     ),
   async execute(interaction, client) {
-    let member = interaction.member.guild.members.cache.get(interaction.user.id)
-    let hasRole = member.roles.cache.some(role => role.name === 'DB')
+    let member = interaction.member.guild.members.cache.get(
+      interaction.user.id
+    );
+    let hasRole = member.roles.cache.some((role) => role.name === "DB");
     if (hasRole) {
-      let img = interaction.options.getString("img").toLowerCase();
+      let searchTerm = interaction.options.getString("searchterm").toLowerCase();
+      let img = interaction.options.getString("img");
       let firstName = interaction.options.getString("firstname").toLowerCase();
       let lastName = interaction.options.getString("lastname").toLowerCase();
       let weapon = interaction.options.getString("weapon").toLowerCase();
@@ -66,6 +72,7 @@ module.exports = {
       let color = interaction.options.getString("color").toUpperCase();
       const characterProfile = await client.addInfo(
         interaction.member,
+        searchTerm,
         img,
         firstName,
         lastName,
@@ -88,7 +95,10 @@ module.exports = {
         });
       }
     } else {
-      interaction.reply({content: 'You do not have permission', ephemeral: true})
+      interaction.reply({
+        content: "You do not have permission",
+        ephemeral: true,
+      });
     }
   },
 };
