@@ -1,27 +1,10 @@
-const { SlashCommandBuilder } = require("@discordjs/builders");
-const { MessageEmbed } = require("discord.js");
-
-const embed = new MessageEmbed()
-  .setColor("BLUE")
-  .setTitle("Pong!")
-  .addFields({ name: "Latency:", value: "Calculating..." })
+const { SlashCommandBuilder } = require("discord.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("ping")
-    .setDescription("Replies with Pong!"),
+    .setDescription("Replies with pong"),
   async execute(interaction) {
-    await interaction.reply({ embeds: [embed] });
-    const message = await interaction.fetchReply();
-    let pingms = Date.now() - message.createdTimestamp;
-    await interaction.editReply({
-      embeds: [
-        new MessageEmbed()
-          .setColor("RED")
-          .setTitle("Pong!")
-          .addFields({ name: "Latency:", value: `${pingms}ms` })
-          .setTimestamp(),
-      ],
-    });
+    await interaction.reply("Pong! ", interaction.user.username);
   },
 };

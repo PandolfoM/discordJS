@@ -1,26 +1,29 @@
 {
-  "name": "thoomerjs",
+  "name": "discordjs",
   "version": "1.0.0",
   "description": "",
-  "main": "bot.js",
+  "main": "index.js",
   "scripts": {
-    "start": "node src/bot.js",
-    "dev": "nodemon src/bot.js"
+    "start": "node .",
+    "dev": "nodemon ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PandolfoM/discordJS.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/PandolfoM/discordJS/issues"
+  },
+  "homepage": "https://github.com/PandolfoM/discordJS#readme",
   "dependencies": {
-    "@discordjs/builders": "^0.6.0",
-    "@discordjs/rest": "^0.1.0-canary.0",
-    "dayjs": "^1.11.1",
-    "discord-api-types": "^0.23.1",
-    "discord.js": "^13.6.0",
-    "dotenv": "^10.0.0",
-    "mongoose": "^6.3.0",
-    "openai": "^3.1.0"
+    "discord.js": "^14.7.1",
+    "dotenv": "^16.0.3"
   },
   "devDependencies": {
+    "eslint": "^8.34.0",
     "nodemon": "^2.0.20"
   }
 }
