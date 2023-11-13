@@ -1,4 +1,4 @@
-const { Client, Intents, Collection } = require("discord.js");
+const { Client, Collection } = require("discord.js");
 const fs = require("fs");
 const client = new Client({ intents: 32767 });
 
@@ -24,5 +24,4 @@ const commandsFolders = fs.readdirSync("./src/commands");
   client.handleEvents(eventFiles, "./src/events");
   client.handleCommands(commandsFolders, "./src/commands");
   client.login(process.env.TOKEN);
-  client.dbLogin();
 })();

@@ -1,5 +1,5 @@
 {
-  "name": "thoomerjs",
+  "name": "epicans",
   "version": "1.0.0",
   "description": "",
   "main": "bot.js",
@@ -17,7 +17,6 @@
     "discord-api-types": "^0.23.1",
     "discord.js": "^13.6.0",
     "dotenv": "^10.0.0",
-    "mongoose": "^6.3.0",
     "openai": "^3.1.0"
   },
   "devDependencies": {
