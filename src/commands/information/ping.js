@@ -1,9 +1,10 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
-const { MessageEmbed } = require("discord.js");
+const { EmbedBuilder } = require("discord.js");
 const { client } = require("../../bot");
+const colors = require("../../config/colors");
 
-const embed = new MessageEmbed()
-  .setColor("BLUE")
+const embed = new EmbedBuilder()
+  .setColor(colors.info)
   .setTitle("Pong!")
   .addFields({ name: "Latency:", value: "Calculating..." });
 
@@ -14,11 +15,11 @@ module.exports = {
   async execute(interaction) {
     await interaction.reply({ embeds: [embed] });
     const message = await interaction.fetchReply();
-    let pingms = Date.now() - message.createdTimestamp;
+    const pingms = Date.now() - message.createdTimestamp;
     await interaction.editReply({
       embeds: [
-        new MessageEmbed()
-          .setColor("RED")
+        new EmbedBuilder()
+          .setColor(colors.info)
           .setTitle("Pong!")
           .addFields({ name: "Latency:", value: `${pingms}ms` })
           .addFields({ name: "Ping:", value: `${client.ws.ping}ms` })

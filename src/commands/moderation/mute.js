@@ -1,7 +1,8 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
-const { Permissions, MessageEmbed } = require("discord.js");
+const { EmbedBuilder, PermissionFlagsBits } = require("discord.js");
 const dayjs = require("dayjs");
 const localizedFormat = require("dayjs/plugin/localizedFormat");
+const colors = require("../../config/colors");
 dayjs.extend(localizedFormat);
 
 module.exports = {
@@ -19,8 +20,8 @@ module.exports = {
     )
     .addStringOption((option) =>
       option.setName("reason").setDescription("Reason for mute")
-    ),
-  permissions: [Permissions.FLAGS.MODERATE_MEMBERS],
+    )
+    .setDefaultMemberPermissions(PermissionFlagsBits.MuteMembers),
   async execute(interaction) {
     const user = interaction.options.getUser("target");
     const duration = Number(
@@ -47,10 +48,10 @@ module.exports = {
     const muteEnd = dayjs(Date.now())
       .add(duration / 60000, "m")
       .format("LTS");
-    const embed = new MessageEmbed()
+    const embed = new EmbedBuilder()
       .setTitle(`${user.tag} has been muted`)
       .setThumbnail(user.avatarURL({ dynamic: true }))
-      .setColor("BLUE")
+      .setColor(colors.info)
       .addFields(
         {
           name: `Duration of timeout:`,

@@ -1,7 +1,8 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
-const { MessageEmbed } = require("discord.js");
+const { EmbedBuilder } = require("discord.js");
 const dayjs = require("dayjs");
 const localizedFormat = require("dayjs/plugin/localizedFormat");
+const colors = require("../../config/colors");
 dayjs.extend(localizedFormat);
 
 module.exports = {
@@ -27,11 +28,11 @@ module.exports = {
       if (user) {
         const accCreated = user.createdTimestamp;
         const accJoined = guild.joinedTimestamp;
-        let dateJoined = dayjs(accJoined).format("LLLL");
-        let isOwner = interaction.member.guild.ownerId === user.id;
-        let date = dayjs(accCreated).format("LLLL");
-        const userEmbed = new MessageEmbed()
-          .setColor("BLUE")
+        const dateJoined = dayjs(accJoined).format("LLLL");
+        const isOwner = interaction.member.guild.ownerId === user.id;
+        const date = dayjs(accCreated).format("LLLL");
+        const userEmbed = new EmbedBuilder()
+          .setColor(colors.info)
           .setThumbnail(user.avatarURL({ dynamic: true }))
           .addFields(
             {
@@ -54,20 +55,21 @@ module.exports = {
         }
 
         if (isOwner) {
-          userEmbed.setAuthor({name: `User Info ~ ${user.tag} 👑`});
+          userEmbed.setAuthor({ name: `User Info ~ ${user.tag} 👑` });
         } else {
-          userEmbed.setAuthor({name: `User Info ~ ${user.tag}`});
+          userEmbed.setAuthor({ name: `User Info ~ ${user.tag}` });
         }
 
         await interaction.reply({ embeds: [userEmbed] });
       } else {
         const accJoined = interaction.member.guild.joinedTimestamp;
         const accCreated = interaction.user.createdTimestamp;
-        let isOwner = interaction.member.guild.ownerId === interaction.user.id;
-        let dateJoined = dayjs(accJoined).format("LLLL");
-        let date = dayjs(accCreated).format("LLLL");
-        const userEmbed = new MessageEmbed()
-          .setColor("BLUE")
+        const isOwner =
+          interaction.member.guild.ownerId === interaction.user.id;
+        const dateJoined = dayjs(accJoined).format("LLLL");
+        const date = dayjs(accCreated).format("LLLL");
+        const userEmbed = new EmbedBuilder()
+          .setColor(colors.info)
           .setThumbnail(interaction.user.avatarURL({ dynamic: true }))
           .addFields(
             {
@@ -90,19 +92,21 @@ module.exports = {
         }
 
         if (isOwner) {
-          userEmbed.setAuthor({ name: `User Info ~ ${interaction.user.tag} 👑`});
+          userEmbed.setAuthor({
+            name: `User Info ~ ${interaction.user.tag} 👑`,
+          });
         } else {
-          userEmbed.setAuthor({ name: `User Info ~ ${interaction.user.tag}`});
+          userEmbed.setAuthor({ name: `User Info ~ ${interaction.user.tag}` });
         }
 
         await interaction.reply({ embeds: [userEmbed] });
       }
     } else if (interaction.options.getSubcommand() === "server") {
       const timestamp = interaction.guild.createdTimestamp;
-      let date = dayjs(timestamp).format("LLLL");
-      const userEmbed = new MessageEmbed()
-        .setColor("BLUE")
-        .setAuthor({name: `Server Info ~ ${interaction.guild.name}`})
+      const date = dayjs(timestamp).format("LLLL");
+      const userEmbed = new EmbedBuilder()
+        .setColor(colors.info)
+        .setAuthor({ name: `Server Info ~ ${interaction.guild.name}` })
         .setThumbnail(interaction.guild.iconURL({ dynamic: true }))
         .addFields(
           {

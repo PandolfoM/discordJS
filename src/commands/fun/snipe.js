@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
-const { MessageEmbed } = require("discord.js");
+const { EmbedBuilder } = require("discord.js");
+const colors = require("../../config/colors");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -7,7 +8,7 @@ module.exports = {
     .setDescription("Snipe last deleted message"),
   async execute(interaction, client) {
     try {
-      const embed = new MessageEmbed()
+      const embed = new EmbedBuilder()
         .setAuthor(
           client.snipes.get(interaction.channelId).author.tag,
           client.snipes
@@ -21,7 +22,7 @@ module.exports = {
           name: "Sniped Message:",
           value: `${client.snipes.get(interaction.channelId).content}`,
         })
-        .setColor("BLUE")
+        .setColor(colors.info)
         .setTimestamp(`${client.snipes.get(interaction.channelId).timestamp}`);
       await interaction.reply({ embeds: [embed] });
     } catch (error) {

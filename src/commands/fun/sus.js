@@ -1,5 +1,6 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
-const { MessageEmbed } = require("discord.js");
+const { EmbedBuilder } = require("discord.js");
+const colors = require("../../config/colors");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("sus")
@@ -12,14 +13,14 @@ module.exports = {
           option.setName("target").setDescription("The user mentioned")
         )
     ),
-  async execute(interaction, client) {
+  async execute(interaction) {
     if (interaction.options.getSubcommand() === "user") {
       const user = interaction.options.getUser("target");
 
       if (user) {
-        const userEmbed = new MessageEmbed()
-          .setColor("BLUE")
-          .setAuthor({name: `Sus Calculator`})
+        const userEmbed = new EmbedBuilder()
+          .setColor(colors.info)
+          .setAuthor({ name: `Sus Calculator` })
           .setThumbnail(user.avatarURL({ dynamic: true }))
           .addFields(
             {
@@ -34,9 +35,9 @@ module.exports = {
 
         await interaction.reply({ embeds: [userEmbed] });
       } else {
-        const userEmbed = new MessageEmbed()
-          .setColor("BLUE")
-          .setAuthor({name: `Sus Calculator`})
+        const userEmbed = new EmbedBuilder()
+          .setColor(colors.info)
+          .setAuthor({ name: `Sus Calculator` })
           .setThumbnail(interaction.user.avatarURL({ dynamic: true }))
           .addFields(
             {
@@ -58,37 +59,39 @@ module.exports = {
 };
 
 function calculateSus(user) {
-  let rng = Math.floor(Math.random() * 100);
+  const rng = Math.floor(Math.random() * 100);
+  let emoji;
 
   if (rng < 25) {
-    var emoji = "🧍‍♂️";
+    emoji = "🧍‍♂️";
   }
   if (rng > 25) {
-    var emoji = "👬";
+    emoji = "👬";
   }
   if (rng > 50) {
-    var emoji = "👨‍❤️‍👨";
+    emoji = "👨‍❤️‍👨";
   }
   if (rng > 75) {
-    var emoji = "👨‍❤️‍💋‍👨";
+    emoji = "👨‍❤️‍💋‍👨";
   }
   return `${user.username} is **${rng}%** sus ${emoji}`;
 }
 
 function calculateSus2(interaction) {
-  let rng = Math.floor(Math.random() * 100);
+  const rng = Math.floor(Math.random() * 100);
+  let emoji;
 
   if (rng < 25) {
-    var emoji = "🧍‍♂️";
+    emoji = "🧍‍♂️";
   }
   if (rng > 25) {
-    var emoji = "👬";
+    emoji = "👬";
   }
   if (rng > 50) {
-    var emoji = "👨‍❤️‍👨";
+    emoji = "👨‍❤️‍👨";
   }
   if (rng > 75) {
-    var emoji = "👨‍❤️‍💋‍👨";
+    emoji = "👨‍❤️‍💋‍👨";
   }
   return `${interaction.user.username} is **${rng}%** sus ${emoji}`;
 }
