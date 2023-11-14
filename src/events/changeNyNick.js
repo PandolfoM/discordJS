@@ -1,6 +1,6 @@
 module.exports = {
   name: "messageCreate",
-  async execute(message, client) {
+  async execute(message) {
     const newNick = "nydevils";
     const onlyNy =
       message.author.id == "391977387447025664" &&

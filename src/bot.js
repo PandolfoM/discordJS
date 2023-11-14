@@ -18,7 +18,7 @@ const eventFiles = fs
 const commandsFolders = fs.readdirSync("./src/commands");
 
 (async () => {
-  for (file of functions) {
+  for (const file of functions) {
     require(`./functions/${file}`)(client);
   }
   client.handleEvents(eventFiles, "./src/events");

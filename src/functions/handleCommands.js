@@ -6,7 +6,7 @@ require("dotenv").config();
 module.exports = (client) => {
   client.handleCommands = async (commandFolders, path) => {
     client.commandArray = [];
-    for (folder of commandFolders) {
+    for (const folder of commandFolders) {
       const commandFiles = fs
         .readdirSync(`${path}/${folder}`)
         .filter((file) => file.endsWith(".js"));
@@ -24,9 +24,15 @@ module.exports = (client) => {
       try {
         console.log("Started refreshing application (/) commands.");
 
-        await rest.put(Routes.applicationGuildCommands(process.env.CLIENTID, process.env.GUILDID), {
-          body: client.commandArray,
-        });
+        await rest.put(
+          Routes.applicationGuildCommands(
+            process.env.CLIENTID,
+            process.env.GUILDID
+          ),
+          {
+            body: client.commandArray,
+          }
+        );
 
         console.log("Successfully reloaded application (/) commands.");
       } catch (error) {

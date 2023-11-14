@@ -7,7 +7,6 @@ const config = new Configuration({
 });
 
 const openai = new OpenAIApi(config);
-const PAST_MESSAGES = 5;
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -20,9 +19,9 @@ module.exports = {
         .setRequired(true)
     ),
   async execute(interaction) {
-    let question = interaction.options.getString("prompt");
+    const question = interaction.options.getString("prompt");
 
-    let prompt = `
+    const prompt = `
       Question: ${question}\n
       Epicans:
     `;

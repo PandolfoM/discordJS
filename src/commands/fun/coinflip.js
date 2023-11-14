@@ -20,7 +20,7 @@ module.exports = {
 };
 
 function coinFlip() {
-  let math = Math.floor(Math.random() * 2);
+  const math = Math.floor(Math.random() * 2);
   if (math === 1) {
     return "Heads";
   } else {

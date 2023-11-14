@@ -1,49 +1,49 @@
 module.exports = {
-	name: 'ready',
-	once: true,
-	async execute(client) {
+  name: "ready",
+  once: true,
+  async execute(client) {
     const statusArr = [
       {
-        type: 'WATCHING',
+        type: "WATCHING",
         content: "Epicans 🌭",
-        status: 'online'
-      }, 
+        status: "online",
+      },
       {
-        type: 'PLAYING',
+        type: "PLAYING",
         content: "Duel of the Fates 🎻",
-        status: 'online'
-      }, 
+        status: "online",
+      },
       {
-        type: 'LISTENING',
+        type: "LISTENING",
         content: "The Cantina Band",
-        status: 'online'
-      }, 
+        status: "online",
+      },
       {
-        type: 'COMPETING',
+        type: "COMPETING",
         content: "The Boonta Eve Classic",
-        status: 'online'
-      }, 
+        status: "online",
+      },
     ];
 
     async function switchPresence() {
-      const option = Math.floor(Math.random() * statusArr.length)
+      const option = Math.floor(Math.random() * statusArr.length);
 
       try {
         await client.user.setPresence({
           activities: [
             {
               name: statusArr[option].content,
-              type: statusArr[option].type
-            }
+              type: statusArr[option].type,
+            },
           ],
-          status: statusArr[option].status
-        })
+          status: statusArr[option].status,
+        });
       } catch (error) {
-        console.error(error)
+        console.error(error);
       }
     }
 
-    setInterval(switchPresence, 60 * 1000)
-		console.log(`Ready! Logged in as ${client.user.tag}`);
-	},
+    setInterval(switchPresence, 60 * 1000);
+    console.log(`Ready! Logged in as ${client.user.tag}`);
+  },
 };
