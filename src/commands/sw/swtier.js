@@ -5,7 +5,11 @@ module.exports = {
     .setName("swtier")
     .setDescription("Star Wars Tier List"),
   async execute(interaction) {
-    const attachment = "./src/content/img/swtier.png";
-    await interaction.reply({ files: [attachment] });
+    const attachment = "./src/content/img/swtier2.png";
+    try {
+      await interaction.reply({ files: [attachment] });
+    } catch (error) {
+      return error;
+    }
   },
 };

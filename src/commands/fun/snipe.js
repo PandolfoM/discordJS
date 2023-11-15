@@ -9,12 +9,12 @@ module.exports = {
   async execute(interaction, client) {
     try {
       const embed = new EmbedBuilder()
-        .setAuthor(
-          client.snipes.get(interaction.channelId).author.tag,
-          client.snipes
+        .setAuthor({
+          name: client.snipes.get(interaction.channelId).author.tag,
+          iconURL: client.snipes
             .get(interaction.channelId)
-            .author.avatarURL({ dynamic: true })
-        )
+            .author.avatarURL({ dynamic: true }),
+        })
         .setThumbnail(
           "https://media.tenor.com/images/14333b6252db0853a2c1331405e765c4/tenor.gif"
         )
@@ -23,9 +23,10 @@ module.exports = {
           value: `${client.snipes.get(interaction.channelId).content}`,
         })
         .setColor(colors.info)
-        .setTimestamp(`${client.snipes.get(interaction.channelId).timestamp}`);
+        .setTimestamp(client.snipes.get(interaction.channelId).timestamp);
       await interaction.reply({ embeds: [embed] });
     } catch (error) {
+      console.log(error);
       await interaction.reply({
         content: "No message to snipe",
         ephemeral: true,
