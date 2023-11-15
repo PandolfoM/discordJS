@@ -1,3 +1,5 @@
+const webscrape = require("../functions/webscraper");
+
 module.exports = {
   name: "ready",
   once: true,
@@ -44,6 +46,8 @@ module.exports = {
     }
 
     setInterval(switchPresence, 60 * 1000);
+    setInterval(webscrape, 30 * 1000);
+    webscrape();
     console.log(`Ready! Logged in as ${client.user.tag}`);
   },
 };
