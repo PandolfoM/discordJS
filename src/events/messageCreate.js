@@ -1,7 +1,6 @@
 module.exports = {
   name: "messageCreate",
   execute(message) {
-    console.log(message.content);
     if (message.content.toLowerCase().includes("sybau")) {
       message.reply("ciaboo*");
     }
