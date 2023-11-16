@@ -17,13 +17,13 @@ async function sendDM(userid, item, price, image, url, drop) {
       .setTitle(drop ? "Price Drop!" : "Price Increase :(")
       .addFields(
         { name: "Item", value: `${item}` },
-        { name: "Price", value: `$${price}`, inline: true },
-        { name: "Link", value: `${shortUrl}`, inline: true }
+        { name: "Price", value: `${price}`, inline: true },
+        { name: "Link", value: `https://${shortUrl}`, inline: true }
       )
       .setImage(`${image}`);
     user.send({ embeds: [embed] });
   } catch (e) {
-    logger(JSON.stringify(e));
+    logger(e);
   }
 }
 
@@ -71,10 +71,6 @@ async function webscrape() {
               // Price has gone up
               sendDM(id, title.trim(), price, image, url, false);
             }
-            // else {
-            //   // Price has gone up
-            //   sendDM(id, title.trim(), price, image, url, false);
-            // }
           }
 
           previousPrices[url] = price;

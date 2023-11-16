@@ -1,4 +1,6 @@
+const { ActivityType } = require("discord.js");
 const webscrape = require("../functions/webscraper");
+const logger = require("../utils/logger");
 
 module.exports = {
   name: "ready",
@@ -6,28 +8,29 @@ module.exports = {
   async execute(client) {
     const statusArr = [
       {
-        type: "WATCHING",
+        type: ActivityType.Watching,
         content: "Epicans 🌭",
         status: "online",
       },
       {
-        type: "PLAYING",
+        type: ActivityType.Playing,
         content: "Duel of the Fates 🎻",
         status: "online",
       },
       {
-        type: "LISTENING",
+        type: ActivityType.Listening,
         content: "The Cantina Band",
         status: "online",
       },
       {
-        type: "COMPETING",
+        type: ActivityType.Competing,
         content: "The Boonta Eve Classic",
         status: "online",
       },
     ];
 
     async function switchPresence() {
+      console.log("presence");
       const option = Math.floor(Math.random() * statusArr.length);
 
       try {
@@ -41,14 +44,13 @@ module.exports = {
           status: statusArr[option].status,
         });
       } catch (error) {
-        console.error(error);
+        logger(error);
       }
+      setTimeout(switchPresence, 60 * 1000);
     }
 
-    setInterval(switchPresence, 60 * 1000);
-    // setInterval(webscrape, 1800 * 1000);
-    setInterval(webscrape, 10 * 1000);
-    // webscrape();
+    switchPresence();
+    setInterval(webscrape, 1800 * 1000);
     console.log(`Ready! Logged in as ${client.user.tag}`);
   },
 };
