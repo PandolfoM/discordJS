@@ -30,7 +30,6 @@ module.exports = {
     ];
 
     async function switchPresence() {
-      console.log("presence");
       const option = Math.floor(Math.random() * statusArr.length);
 
       try {
