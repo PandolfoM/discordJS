@@ -11,9 +11,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "axios": "^1.6.2",
     "dayjs": "^1.11.1",
     "discord.js": "^14.14.1",
     "dotenv": "^10.0.0",
+    "firebase": "^10.6.0",
     "openai": "^3.1.0",
     "playwright": "^1.39.0"
   },

@@ -46,8 +46,9 @@ module.exports = {
     }
 
     setInterval(switchPresence, 60 * 1000);
-    setInterval(webscrape, 30 * 1000);
-    webscrape();
+    // setInterval(webscrape, 1800 * 1000);
+    setInterval(webscrape, 10 * 1000);
+    // webscrape();
     console.log(`Ready! Logged in as ${client.user.tag}`);
   },
 };
