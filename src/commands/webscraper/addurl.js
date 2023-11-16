@@ -1,5 +1,4 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
-const logger = require("../../utils/logger");
 const addUrl = require("../../utils/firebaseUtils");
 
 module.exports = {
@@ -20,7 +19,7 @@ module.exports = {
         await addUrl(interaction.user.id, url);
         await interaction.reply({ content: `added: ${url}`, ephemeral: true });
       } catch (error) {
-        logger(error);
+        console.log(error);
       }
     } else {
       try {
@@ -29,7 +28,7 @@ module.exports = {
           ephemeral: true,
         });
       } catch (error) {
-        logger(error);
+        console.log(error);
       }
     }
   },

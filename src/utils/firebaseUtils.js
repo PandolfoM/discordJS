@@ -6,9 +6,9 @@ const {
   doc,
   arrayUnion,
   arrayRemove,
+  getDoc,
 } = require("firebase/firestore");
 const db = require("../firebaseConfig");
-const logger = require("./logger");
 
 async function getUrls() {
   try {
@@ -28,7 +28,7 @@ async function addUrl(userid, url) {
       urls: arrayUnion(url),
     });
   } catch (error) {
-    logger(error);
+    console.log(error);
   }
 }
 
@@ -39,10 +39,24 @@ async function removeUrl(userid, url) {
       urls: arrayRemove(url),
     });
   } catch (error) {
-    logger(error);
+    console.log(error);
+  }
+}
+
+async function getItemNames(userid) {
+  try {
+    const snap = await getDoc(doc(db, "itemnames", userid));
+    if (snap.exists()) {
+      return snap.data();
+    } else {
+      return "no items";
+    }
+  } catch (error) {
+    console.error(error);
   }
 }
 
 module.exports = getUrls;
 module.exports = addUrl;
 module.exports = removeUrl;
+module.exports = getItemNames;

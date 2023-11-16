@@ -1,5 +1,4 @@
 const axios = require("axios");
-const logger = require("./logger");
 
 async function urlShortener(url) {
   try {
@@ -16,9 +15,9 @@ async function urlShortener(url) {
       }
     );
 
-    return response.data.id;
+    return `https://${response.data.id}`;
   } catch (error) {
-    logger("Error shortening URL:", error.message);
+    console.log("Error shortening URL:", error.message);
     return url;
   }
 }

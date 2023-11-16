@@ -37,9 +37,7 @@ module.exports = {
         presence_penalty: 0,
         stop: ["\n"],
       });
-      // console.log(prompt);
       const text = response.data.choices[0].text.substring(0);
-      console.log(text);
       await interaction.reply("One moment...");
       return await interaction.editReply(String(text));
     } catch (e) {

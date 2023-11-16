@@ -1,6 +1,5 @@
 const { chromium } = require("playwright");
 const { client } = require("../bot");
-const logger = require("../utils/logger");
 const getUrls = require("../utils/firebaseUtils");
 const { EmbedBuilder } = require("discord.js");
 const colors = require("../config/colors");
@@ -18,12 +17,12 @@ async function sendDM(userid, item, price, image, url, drop) {
       .addFields(
         { name: "Item", value: `${item}` },
         { name: "Price", value: `${price}`, inline: true },
-        { name: "Link", value: `https://${shortUrl}`, inline: true }
+        { name: "Link", value: `${shortUrl}`, inline: true }
       )
       .setImage(`${image}`);
     user.send({ embeds: [embed] });
   } catch (e) {
-    logger(e);
+    console.log(e);
   }
 }
 

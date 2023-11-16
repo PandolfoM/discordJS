@@ -1,6 +1,5 @@
 const { ActivityType } = require("discord.js");
 const webscrape = require("../functions/webscraper");
-const logger = require("../utils/logger");
 
 module.exports = {
   name: "ready",
@@ -43,7 +42,7 @@ module.exports = {
           status: statusArr[option].status,
         });
       } catch (error) {
-        logger(error);
+        console.log(error);
       }
       setTimeout(switchPresence, 60 * 1000);
     }

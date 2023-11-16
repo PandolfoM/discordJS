@@ -1,6 +1,5 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
-const logger = require("../../utils/logger");
-const addUrl = require("../../utils/firebaseUtils");
+const removeUrl = require("../../utils/firebaseUtils");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -17,13 +16,13 @@ module.exports = {
       url.toLowerCase().includes("a.co")
     ) {
       try {
-        await addUrl(interaction.user.id, url);
+        await removeUrl(interaction.user.id, url);
         await interaction.reply({
           content: `removed: ${url}`,
           ephemeral: true,
         });
       } catch (error) {
-        logger(error);
+        console.log(error);
       }
     } else {
       try {
@@ -32,7 +31,7 @@ module.exports = {
           ephemeral: true,
         });
       } catch (error) {
-        logger(error);
+        console.log(error);
       }
     }
   },
