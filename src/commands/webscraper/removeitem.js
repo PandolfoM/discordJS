@@ -1,9 +1,9 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
-const removeUrl = require("../../utils/firebaseUtils");
+const { removeUrl } = require("../../utils/firebaseUtils");
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("removeurl")
+    .setName("removeitem")
     .setDescription("Remove item from webscraper")
     .addStringOption((option) =>
       option.setName("url").setRequired(true).setDescription("AMAZON URLS ONLY")

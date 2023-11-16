@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
-const getItemNames = require("../../utils/firebaseUtils");
+const { getItemNames } = require("../../utils/firebaseUtils");
 const colors = require("../../config/colors");
 const urlShortener = require("../../utils/urlShortener");
 
@@ -25,7 +25,7 @@ module.exports = {
     // };
     try {
       const items = await getItemNames(interaction.user.id);
-      const mappedFieldsPromise = items.items.map(async (i) => ({
+      const mappedFieldsPromise = items.map(async (i) => ({
         name: i.name,
         value: await urlShortener(i.url),
       }));

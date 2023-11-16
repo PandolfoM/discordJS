@@ -1,23 +1,33 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
-const addUrl = require("../../utils/firebaseUtils");
+const { addItem } = require("../../utils/firebaseUtils");
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("addurl")
+    .setName("additem")
     .setDescription("Add item to webscraper")
     .addStringOption((option) =>
       option.setName("url").setRequired(true).setDescription("AMAZON URLS ONLY")
+    )
+    .addStringOption((option) =>
+      option
+        .setName("name")
+        .setRequired(true)
+        .setDescription("Name of the product")
     ),
   async execute(interaction) {
     const url = interaction.options.getString("url");
+    const name = interaction.options.getString("name");
 
     if (
       url.toLowerCase().includes("amazon.com") ||
       url.toLowerCase().includes("a.co")
     ) {
       try {
-        await addUrl(interaction.user.id, url);
-        await interaction.reply({ content: `added: ${url}`, ephemeral: true });
+        await addItem(interaction.user.id, url, name);
+        await interaction.reply({
+          content: `added: ${url}`,
+          ephemeral: true,
+        });
       } catch (error) {
         console.log(error);
       }

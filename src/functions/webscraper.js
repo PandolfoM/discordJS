@@ -1,9 +1,9 @@
 const { chromium } = require("playwright");
 const { client } = require("../bot");
-const getUrls = require("../utils/firebaseUtils");
 const { EmbedBuilder } = require("discord.js");
 const colors = require("../config/colors");
 const urlShortener = require("../utils/urlShortener");
+const { getUrls } = require("../utils/firebaseUtils");
 
 const previousPrices = {};
 

@@ -7,6 +7,7 @@ const {
   arrayUnion,
   arrayRemove,
   getDoc,
+  where,
 } = require("firebase/firestore");
 const db = require("../firebaseConfig");
 
@@ -21,11 +22,11 @@ async function getUrls() {
   }
 }
 
-async function addUrl(userid, url) {
+async function addItem(userid, url, name) {
   try {
     const ref = doc(db, "webscraper", userid);
     await updateDoc(ref, {
-      urls: arrayUnion(url),
+      items: arrayUnion({ url: url, name: name }),
     });
   } catch (error) {
     console.log(error);
@@ -34,10 +35,15 @@ async function addUrl(userid, url) {
 
 async function removeUrl(userid, url) {
   try {
-    const ref = doc(db, "webscraper", userid);
-    await updateDoc(ref, {
-      urls: arrayRemove(url),
-    });
+    const snap = await getDoc(doc(db, "webscraper", userid));
+    if (snap.exists()) {
+      const newArr = snap.data().items.filter((i) => i.url !== url);
+      await updateDoc(doc(db, "webscraper", userid), {
+        items: newArr,
+      });
+    } else {
+      console.log("no items");
+    }
   } catch (error) {
     console.log(error);
   }
@@ -45,18 +51,20 @@ async function removeUrl(userid, url) {
 
 async function getItemNames(userid) {
   try {
-    const snap = await getDoc(doc(db, "itemnames", userid));
+    const snap = await getDoc(doc(db, "webscraper", userid));
     if (snap.exists()) {
-      return snap.data();
+      return snap.data().items;
     } else {
-      return "no items";
+      console.log("No items");
     }
   } catch (error) {
     console.error(error);
   }
 }
 
-module.exports = getUrls;
-module.exports = addUrl;
-module.exports = removeUrl;
-module.exports = getItemNames;
+module.exports = {
+  getUrls,
+  addItem,
+  removeUrl,
+  getItemNames,
+};
