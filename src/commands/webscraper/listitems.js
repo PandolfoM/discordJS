@@ -38,6 +38,9 @@ module.exports = {
               color: colors.info,
               title: "Web Scraper",
               description: "These are all the items you are currently watching",
+              thumbnail: {
+                url: "https://media.tenor.com/IVh7YxGaB_4AAAAC/nerd-emoji.gif",
+              },
               fields: allFields,
             },
           ],

@@ -76,12 +76,11 @@ async function removeItemNumber(userid, index) {
     if (snap.exists()) {
       const data = snap.data().items;
       if (index >= 0 && index < data.length) {
-        const removedItem = data.splice(index, 1)[0].name;
-        data.splice(index, 1);
+        const removedItem = data.splice(index, 1)[0];
         await updateDoc(doc(db, "webscraper", userid), {
           items: data,
         });
-        return `Removed: ${removedItem}`;
+        return `Removed: ${removedItem.name}`;
       } else {
         return "There has been an error!";
       }
