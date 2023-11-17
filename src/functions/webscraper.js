@@ -74,4 +74,6 @@ async function webscrape() {
   })();
 }
 
+setInterval(webscrape, 1800 * 1000);
+
 module.exports = webscrape;

@@ -48,7 +48,7 @@ module.exports = {
     }
 
     switchPresence();
-    setInterval(webscrape, 1800 * 1000);
+    webscrape();
     console.log(`Ready! Logged in as ${client.user.tag}`);
   },
 };
