@@ -49,6 +49,29 @@ async function removeUrl(userid, url) {
   }
 }
 
+async function removeItemNumber(userid, index) {
+  try {
+    const snap = await getDoc(doc(db, "webscraper", userid));
+    if (snap.exists()) {
+      const data = snap.data().items;
+      if (index >= 0 && index < data.length) {
+        const removedItem = data.splice(index, 1)[0].name;
+        data.splice(index, 1);
+        await updateDoc(doc(db, "webscraper", userid), {
+          items: data,
+        });
+        return `Removed: ${removedItem}`;
+      } else {
+        return "There has been an error!";
+      }
+    } else {
+      console.log("no items");
+    }
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 async function getItemNames(userid) {
   try {
     const snap = await getDoc(doc(db, "webscraper", userid));
@@ -66,5 +89,6 @@ module.exports = {
   getUrls,
   addItem,
   removeUrl,
+  removeItemNumber,
   getItemNames,
 };
