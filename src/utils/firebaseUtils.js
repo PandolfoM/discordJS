@@ -5,11 +5,10 @@ const {
   updateDoc,
   doc,
   arrayUnion,
-  arrayRemove,
   getDoc,
-  where,
 } = require("firebase/firestore");
 const db = require("../firebaseConfig");
+const webscrapeItem = require("../functions/webscrapeItem");
 
 async function getUrls() {
   try {
@@ -23,14 +22,27 @@ async function getUrls() {
 }
 
 async function addItem(userid, url, name) {
-  try {
-    const ref = doc(db, "webscraper", userid);
-    await updateDoc(ref, {
-      items: arrayUnion({ url: url, name: name }),
-    });
-  } catch (error) {
-    console.log(error);
-  }
+  return (async () => {
+    try {
+      const ref = doc(db, "webscraper", userid);
+      if (name) {
+        await updateDoc(ref, {
+          items: arrayUnion({ url: url, name: name }),
+        });
+        return true;
+      } else {
+        const itemName = await webscrapeItem(url);
+        if (itemName) {
+          await updateDoc(ref, {
+            items: arrayUnion({ url: url, name: itemName }),
+          });
+          return true;
+        }
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  })();
 }
 
 async function removeUrl(userid, url) {

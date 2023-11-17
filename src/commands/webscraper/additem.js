@@ -9,10 +9,7 @@ module.exports = {
       option.setName("url").setRequired(true).setDescription("AMAZON URLS ONLY")
     )
     .addStringOption((option) =>
-      option
-        .setName("name")
-        .setRequired(true)
-        .setDescription("Name of the product")
+      option.setName("name").setDescription("Name of the product")
     ),
   async execute(interaction) {
     const url = interaction.options.getString("url");
@@ -23,11 +20,17 @@ module.exports = {
       url.toLowerCase().includes("a.co")
     ) {
       try {
-        await addItem(interaction.user.id, url, name);
         await interaction.reply({
-          content: `added: ${url}`,
+          content: `Adding item...`,
           ephemeral: true,
         });
+        const addFunc = await addItem(interaction.user.id, url, name);
+        if (addFunc) {
+          await interaction.editReply({
+            content: `Added: ${url}`,
+            ephemeral: true,
+          });
+        }
       } catch (error) {
         console.log(error);
       }
