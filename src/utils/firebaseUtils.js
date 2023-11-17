@@ -14,10 +14,19 @@ async function getUrls() {
   try {
     const q = query(collection(db, "webscraper"));
     const qSnapshot = await getDocs(q);
+    let data = [];
 
-    return qSnapshot.docs.map((i) => ({ id: i.id, urls: i.data().urls }));
+    qSnapshot.forEach((i) => {
+      const docData = i.data();
+      data = docData.items.map((item) => ({
+        id: docData.id,
+        url: item.url,
+      }));
+    });
+
+    return data;
   } catch (error) {
-    return;
+    return [];
   }
 }
 

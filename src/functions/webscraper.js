@@ -16,7 +16,7 @@ async function sendDM(userid, item, price, image, url, drop) {
       .setTitle(drop ? "Price Drop!" : "Price Increase :(")
       .addFields(
         { name: "Item", value: `${item}` },
-        { name: "Price", value: `${price}`, inline: true },
+        { name: "Price", value: `$${price}`, inline: true },
         { name: "Link", value: `${shortUrl}`, inline: true }
       )
       .setImage(`${image}`);
@@ -33,47 +33,38 @@ async function webscrape() {
     const qUrls = await getUrls();
 
     try {
-      for (const urlObj of qUrls) {
-        const id = urlObj.id;
-        const urls = urlObj.urls;
-        for (const url of urls) {
-          const page = await context.newPage();
-          await page.goto(url);
-
-          const titleElement = await page.$("#productTitle");
-          const priceElement = await page.$(".a-price-whole");
-          const imageElement = await page.$("#landingImage");
-          const priceFractionElement = await page.$(".a-price-fraction");
-
-          if (
-            !titleElement ||
-            !priceElement ||
-            !priceFractionElement ||
-            !imageElement
-          ) {
-            continue;
-          }
-
-          const title = await titleElement.textContent();
-          const wholePart = await priceElement.textContent();
-          const fractionPart = await priceFractionElement.textContent();
-          const image = await imageElement.getAttribute("src");
-          const price = parseFloat(
-            `${wholePart.replace(/,/g, "")}${fractionPart}`
-          );
-
-          if (previousPrices[url] !== undefined) {
-            if (price < previousPrices[url]) {
-              // Price has gone down
-              sendDM(id, title.trim(), price, image, url, true);
-            } else if (price > previousPrices[url]) {
-              // Price has gone up
-              sendDM(id, title.trim(), price, image, url, false);
-            }
-          }
-
-          previousPrices[url] = price;
+      for (const urlArr of qUrls) {
+        const page = await context.newPage();
+        await page.goto(urlArr.url);
+        const titleElement = await page.$("#productTitle");
+        const priceElement = await page.$(".a-price-whole");
+        const imageElement = await page.$("#landingImage");
+        const priceFractionElement = await page.$(".a-price-fraction");
+        if (
+          !titleElement ||
+          !priceElement ||
+          !priceFractionElement ||
+          !imageElement
+        ) {
+          continue;
         }
+        const title = await titleElement.textContent();
+        const wholePart = await priceElement.textContent();
+        const fractionPart = await priceFractionElement.textContent();
+        const image = await imageElement.getAttribute("src");
+        const price = parseFloat(
+          `${wholePart.replace(/,/g, "")}${fractionPart}`
+        );
+        if (previousPrices[urlArr.url] !== undefined) {
+          if (price < previousPrices[urlArr.url]) {
+            // Price has gone down
+            sendDM(urlArr.id, title.trim(), price, image, urlArr.url, true);
+          } else if (price > previousPrices[urlArr.url]) {
+            // Price has gone up
+            sendDM(urlArr.id, title.trim(), price, image, urlArr.url, false);
+          }
+        }
+        previousPrices[urlArr.url] = price;
       }
     } catch (error) {
       console.error("Error while scraping:", error);
