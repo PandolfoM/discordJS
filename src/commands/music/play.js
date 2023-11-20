@@ -170,6 +170,10 @@ async function playSpotify(
   client
 ) {
   try {
+    if (play.is_expired()) {
+      await play.refreshToken();
+    }
+
     await play.setToken({
       spotify: {
         client_id: process.env.PLAYCLIENTID,
@@ -178,10 +182,6 @@ async function playSpotify(
         market: "US",
       },
     });
-
-    if (play.is_expired()) {
-      await play.refreshToken();
-    }
 
     const data = await play.spotify(url);
 

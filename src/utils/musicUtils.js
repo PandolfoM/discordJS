@@ -56,7 +56,8 @@ async function playTrack(queue, player, connection, interaction, client) {
       queue: client.musicQueue.get(interaction.guild.id).queue,
     });
 
-    await interaction.reply({
+    await interaction.deferReply({ ephemeral: true });
+    await interaction.editReply({
       embeds: [
         {
           color: colors.info,
@@ -80,16 +81,22 @@ async function playNextTrack(guildId, client, interaction, player) {
   }
 
   const connection = getVoiceConnection(guildId);
-
   if (!connection) {
-    await interaction.reply("There was an error");
+    await interaction.reply({
+      embeds: [
+        {
+          color: colors.error,
+          title: "I am not in a voice channel",
+        },
+      ],
+    });
     return;
   }
 
   // Check if there are tracks in the queue
   if (queue.queue.length > 0) {
-    const nextTrack = queue.queue.pop();
-    const stream = await play.stream(nextTrack.url, {
+    await queue.queue.shift();
+    const stream = await play.stream(queue.queue[0].url, {
       discordPlayerCompatibility: true,
       quality: 2,
       language: "en-US",
@@ -99,18 +106,16 @@ async function playNextTrack(guildId, client, interaction, player) {
       inputType: stream.type,
     });
 
-    // Play the next track
     player.play(resource);
     connection.subscribe(player);
 
-    // Inform that the next track is now playing
     const nowPlayingEmbed = new EmbedBuilder()
       .setColor(colors.info)
       .setTitle("Now Playing!")
-      .setDescription(`${nextTrack.title}`);
+      .setDescription(`${queue.queue[0].title}`);
 
-    // Assuming you have access to interaction object
-    await interaction.reply({ embeds: [nowPlayingEmbed] });
+    await interaction.deferReply({ ephemeral: true });
+    await interaction.editReply({ embeds: [nowPlayingEmbed] });
   } else {
     // No more tracks in the queue, stop playing
     player.stop();

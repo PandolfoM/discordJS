@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require("discord.js");
 const { playNextTrack } = require("../../utils/musicUtils");
 const { createAudioPlayer } = require("@discordjs/voice");
+const colors = require("../../config/colors");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -12,13 +13,40 @@ module.exports = {
     const player = createAudioPlayer();
 
     if (channel) {
-      try {
-        playNextTrack(guildid, client, interaction, player);
-      } catch (error) {
-        await interaction.reply("There has been an error!");
+      if (client.musicQueue.get(guildid)) {
+        try {
+          playNextTrack(guildid, client, interaction, player);
+        } catch (error) {
+          await interaction.reply({
+            embeds: [
+              {
+                color: colors.error,
+                title: "There was an error",
+              },
+            ],
+          });
+        }
+      } else {
+        await interaction.reply({
+          embeds: [
+            {
+              color: colors.error,
+              title: "There are no tracks in the queue",
+            },
+          ],
+        });
       }
     } else {
-      await interaction.reply("Join a voice channel then try again!");
+      await interaction.reply(
+        await interaction.reply({
+          embeds: [
+            {
+              color: colors.error,
+              title: "Join a voice channel and try again",
+            },
+          ],
+        })
+      );
     }
   },
 };
