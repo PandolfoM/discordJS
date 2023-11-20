@@ -20,10 +20,13 @@ module.exports = {
     .addStringOption((option) =>
       option.setName("url").setRequired(true).setDescription("Link")
     ),
-  async execute(interaction) {
+  async execute(interaction, client) {
     const url = interaction.options.getString("url");
+    const guildid = interaction.guild.id;
     const channel = interaction.member?.voice.channel;
     const player = createAudioPlayer();
+
+    client.player.set(guildid, player);
 
     if (channel) {
       try {
