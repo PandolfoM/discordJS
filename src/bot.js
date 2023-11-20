@@ -8,6 +8,7 @@ const client = new Client({
     GatewayIntentBits.DirectMessages,
     GatewayIntentBits.DirectMessageReactions,
     GatewayIntentBits.DirectMessageTyping,
+    GatewayIntentBits.GuildVoiceStates,
   ],
 });
 
