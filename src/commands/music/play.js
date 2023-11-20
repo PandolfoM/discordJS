@@ -5,14 +5,19 @@ const {
   createAudioResource,
 } = require("@discordjs/voice");
 const play = require("play-dl");
-const { SlashCommandBuilder } = require("discord.js");
+const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const colors = require("../../config/colors");
 // const ytdl = require("ytdl-core");
 // const fetch = require("isomorphic-unfetch");
 // const { google } = require("googleapis");
 // const { getPreview } = require("spotify-url-info")(fetch);
 // const soundcloud = require("soundcloud-downloader").default;
 
-const validUrls = ["youtu.be", "youtube.com", "soundcloud.com"];
+const validUrls = ["youtu.be", "youtube.com"];
+
+const errorEmbed = new EmbedBuilder()
+  .setColor(colors.error)
+  .setTitle("There has been an error!");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -41,8 +46,8 @@ module.exports = {
           await playYouTube(url, player, connection, interaction);
         } else if (url.includes("open.spotify.com")) {
           await playSpotify(url, player, connection, interaction);
-          // } else if (url.includes("soundcloud.com")) {
-          //   await playSoundcloud(url, player, connection, interaction);
+        } else if (url.includes("soundcloud.com")) {
+          await playSoundcloud(url, player, connection, interaction);
         } else {
           await interaction.reply({
             content: "Not a valid URL",
@@ -62,20 +67,33 @@ module.exports = {
 };
 
 async function playYouTube(url, player, connection, interaction) {
-  const stream = await play.stream(url, {
-    discordPlayerCompatibility: true,
-    quality: 2,
-    language: "en-US",
-  });
+  try {
+    const data = await play.video_info(url, {
+      discordPlayerCompatibility: true,
+      quality: 2,
+      language: "en-US",
+    });
+    const stream = await play.stream_from_info(data);
 
-  const resource = createAudioResource(stream.stream, {
-    inputType: stream.type,
-  });
+    const resource = createAudioResource(stream.stream, {
+      inputType: stream.type,
+    });
 
-  player.play(resource);
-  connection.subscribe(player);
+    player.play(resource);
+    connection.subscribe(player);
 
-  await interaction.reply("Playing now!");
+    await interaction.reply({
+      embeds: [
+        {
+          color: colors.info,
+          title: "Now Playing!",
+          description: `${data.video_details.title}`,
+        },
+      ],
+    });
+  } catch (error) {
+    await interaction.reply({ embeds: [errorEmbed] });
+  }
 
   // ! Leaving this in just incase play-dl goes down for some reason (Uncomment/comment import) ! //
 
@@ -92,52 +110,102 @@ async function playYouTube(url, player, connection, interaction) {
 }
 
 // ! Leaving this in just incase play-dl goes down for some reason (Uncomment/comment import) ! //
-// async function playSoundcloud(url, player, connection, interaction) {
-//   soundcloud.download(url).then((stream) => {
-//     const resource = createAudioResource(stream, {
-//       inputType: StreamType.Arbitrary,
-//     });
-//     player.play(resource);
-//     connection.subscribe(player);
-//   });
+async function playSoundcloud(url, player, connection, interaction) {
+  try {
+    if (play.is_expired()) {
+      // ! Keep checking this page for developer signups https://soundcloud.com/you/apps ! //
+      const newToken = await play.getFreeClientID();
+      play.setToken({
+        soundcloud: {
+          client_id: newToken,
+        },
+      });
+      await play.refreshToken();
+    }
 
-//   await interaction.reply("Playing now!");
-// }
+    const data = await play.soundcloud(url, {
+      discordPlayerCompatibility: true,
+      quality: 2,
+      language: "en-US",
+    });
+    const stream = await play.stream_from_info(data);
+
+    const resource = createAudioResource(stream.stream, {
+      inputType: stream.type,
+    });
+
+    player.play(resource);
+    connection.subscribe(player);
+
+    await interaction.reply({
+      embeds: [
+        {
+          color: colors.info,
+          title: "Now Playing!",
+          description: `${data.name} by ${data.publisher.artist}`,
+        },
+      ],
+    });
+  } catch (error) {
+    await interaction.reply({ embeds: [errorEmbed] });
+  }
+  // soundcloud.download(url).then((stream) => {
+  //   const resource = createAudioResource(stream, {
+  //     inputType: StreamType.Arbitrary,
+  //   });
+  //   player.play(resource);
+  //   connection.subscribe(player);
+  // });
+
+  // await interaction.reply("Playing now!");
+}
 
 async function playSpotify(url, player, connection, interaction) {
-  await play.setToken({
-    spotify: {
-      client_id: process.env.PLAYCLIENTID,
-      client_secret: process.env.PLAYCLIENTSECRET,
-      refresh_token: process.env.REFRESHTOKEN,
-      market: "US",
-    },
-  });
+  try {
+    await play.setToken({
+      spotify: {
+        client_id: process.env.PLAYCLIENTID,
+        client_secret: process.env.PLAYCLIENTSECRET,
+        refresh_token: process.env.REFRESHTOKEN,
+        market: "US",
+      },
+    });
 
-  if (play.is_expired()) {
-    await play.refreshToken();
+    if (play.is_expired()) {
+      await play.refreshToken();
+    }
+
+    const data = await play.spotify(url);
+
+    const searched = await play.search(`${data.name}`, {
+      limit: 1,
+    });
+
+    const stream = await play.stream(searched[0].url, {
+      discordPlayerCompatibility: true,
+      quality: 2,
+      language: "en-US",
+    });
+
+    const resource = createAudioResource(stream.stream, {
+      inputType: stream.type,
+    });
+
+    player.play(resource);
+    connection.subscribe(player);
+
+    await interaction.reply({
+      embeds: [
+        {
+          color: colors.info,
+          title: "Now Playing!",
+          description: `${data.name} by ${data.artists[0].name}`,
+        },
+      ],
+    });
+  } catch (error) {
+    await interaction.reply({ embeds: [errorEmbed] });
   }
-
-  const data = await play.spotify(url);
-
-  const searched = await play.search(`${data.name}`, {
-    limit: 1,
-  });
-
-  const stream = await play.stream(searched[0].url, {
-    discordPlayerCompatibility: true,
-    quality: 2,
-    language: "en-US",
-  });
-
-  const resource = createAudioResource(stream.stream, {
-    inputType: stream.type,
-  });
-
-  player.play(resource);
-  connection.subscribe(player);
-
-  await interaction.reply("Playing spotify now!");
 
   // ! Leaving this in just incase play-dl goes down for some reason (Uncomment/comment import) ! //
 
