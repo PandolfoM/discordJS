@@ -77,7 +77,7 @@ async function playYouTube(url, player, connection, interaction) {
 
   await interaction.reply("Playing now!");
 
-  ///! Leaving this in just incase play-dl goes down for some reason (Uncomment/comment import) !///
+  // ! Leaving this in just incase play-dl goes down for some reason (Uncomment/comment import) ! //
 
   // const stream = await ytdl(url, { filter: "audioonly" });
 
@@ -91,7 +91,7 @@ async function playYouTube(url, player, connection, interaction) {
   // await interaction.reply("Playing now!");
 }
 
-///! Leaving this in just incase play-dl goes down for some reason (Uncomment/comment import) !///
+// ! Leaving this in just incase play-dl goes down for some reason (Uncomment/comment import) ! //
 // async function playSoundcloud(url, player, connection, interaction) {
 //   soundcloud.download(url).then((stream) => {
 //     const resource = createAudioResource(stream, {
@@ -139,7 +139,7 @@ async function playSpotify(url, player, connection, interaction) {
 
   await interaction.reply("Playing spotify now!");
 
-  ///! Leaving this in just incase play-dl goes down for some reason (Uncomment/comment import) !///
+  // ! Leaving this in just incase play-dl goes down for some reason (Uncomment/comment import) ! //
 
   // const trackInfo = await getPreview(url);
 
