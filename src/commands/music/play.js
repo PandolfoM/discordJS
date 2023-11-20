@@ -1,11 +1,13 @@
-const {
-  createAudioPlayer,
-  joinVoiceChannel,
-  createAudioResource,
-} = require("@discordjs/voice");
+const { createAudioPlayer, joinVoiceChannel } = require("@discordjs/voice");
 const play = require("play-dl");
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const colors = require("../../config/colors");
+const {
+  getGuildQueue,
+  enqueue,
+  playTrack,
+  playNextTrack,
+} = require("../../utils/musicUtils");
 
 const validUrls = ["youtu.be", "youtube.com"];
 
@@ -25,6 +27,13 @@ module.exports = {
     const guildid = interaction.guild.id;
     const channel = interaction.member?.voice.channel;
     const player = createAudioPlayer();
+    const queue = getGuildQueue(guildid, client);
+
+    player.on("stateChange", (oldState, newState) => {
+      if (newState.status === "idle" && oldState.status !== "idle") {
+        playNextTrack(guildid, client, interaction, player);
+      }
+    });
 
     client.player.set(guildid, player);
 
@@ -37,11 +46,32 @@ module.exports = {
         });
 
         if (validUrls.some((validUrl) => url.includes(validUrl))) {
-          await playYouTube(url, player, connection, interaction);
+          await playYouTube(
+            url,
+            player,
+            connection,
+            interaction,
+            queue,
+            client
+          );
         } else if (url.includes("open.spotify.com")) {
-          await playSpotify(url, player, connection, interaction);
+          await playSpotify(
+            url,
+            player,
+            connection,
+            interaction,
+            queue,
+            client
+          );
         } else if (url.includes("soundcloud.com")) {
-          await playSoundcloud(url, player, connection, interaction);
+          await playSoundcloud(
+            url,
+            player,
+            connection,
+            interaction,
+            queue,
+            client
+          );
         } else {
           await interaction.reply({
             content: "Not a valid URL",
@@ -60,37 +90,45 @@ module.exports = {
   },
 };
 
-async function playYouTube(url, player, connection, interaction) {
+async function playYouTube(
+  url,
+  player,
+  connection,
+  interaction,
+  queue,
+  client
+) {
   try {
     const data = await play.video_info(url, {
       discordPlayerCompatibility: true,
       quality: 2,
       language: "en-US",
     });
-    const stream = await play.stream_from_info(data);
 
-    const resource = createAudioResource(stream.stream, {
-      inputType: stream.type,
-    });
+    enqueue(
+      queue,
+      `${data.video_details.title}`,
+      data.video_details.url,
+      interaction,
+      client
+    );
 
-    player.play(resource);
-    connection.subscribe(player);
-
-    await interaction.reply({
-      embeds: [
-        {
-          color: colors.info,
-          title: "Now Playing!",
-          description: `${data.video_details.title}`,
-        },
-      ],
-    });
+    if (!queue.playing) {
+      playTrack(queue, player, connection, interaction, client);
+    }
   } catch (error) {
     await interaction.reply({ embeds: [errorEmbed] });
   }
 }
 
-async function playSoundcloud(url, player, connection, interaction) {
+async function playSoundcloud(
+  url,
+  player,
+  connection,
+  interaction,
+  queue,
+  client
+) {
   try {
     if (play.is_expired()) {
       // ! Keep checking this page for developer signups https://soundcloud.com/you/apps ! //
@@ -108,30 +146,29 @@ async function playSoundcloud(url, player, connection, interaction) {
       quality: 2,
       language: "en-US",
     });
-    const stream = await play.stream_from_info(data);
 
-    const resource = createAudioResource(stream.stream, {
-      inputType: stream.type,
+    const searched = await play.search(`${data.name}`, {
+      limit: 1,
     });
 
-    player.play(resource);
-    connection.subscribe(player);
+    enqueue(queue, `${data.name}`, searched[0].url, interaction, client);
 
-    await interaction.reply({
-      embeds: [
-        {
-          color: colors.info,
-          title: "Now Playing!",
-          description: `${data.publisher.artist} - ${data.name}`,
-        },
-      ],
-    });
+    if (!queue.playing) {
+      playTrack(queue, player, connection, interaction, client);
+    }
   } catch (error) {
     await interaction.reply({ embeds: [errorEmbed] });
   }
 }
 
-async function playSpotify(url, player, connection, interaction) {
+async function playSpotify(
+  url,
+  player,
+  connection,
+  interaction,
+  queue,
+  client
+) {
   try {
     await play.setToken({
       spotify: {
@@ -148,32 +185,24 @@ async function playSpotify(url, player, connection, interaction) {
 
     const data = await play.spotify(url);
 
-    const searched = await play.search(`${data.name}`, {
-      limit: 1,
-    });
+    const searched = await play.search(
+      `${data.artists[0].name} ${data.name} lyrics`,
+      {
+        limit: 1,
+      }
+    );
 
-    const stream = await play.stream(searched[0].url, {
-      discordPlayerCompatibility: true,
-      quality: 2,
-      language: "en-US",
-    });
+    enqueue(
+      queue,
+      `${data.artists[0].name} - ${data.name}`,
+      searched[0].url,
+      interaction,
+      client
+    );
 
-    const resource = createAudioResource(stream.stream, {
-      inputType: stream.type,
-    });
-
-    player.play(resource);
-    connection.subscribe(player);
-
-    await interaction.reply({
-      embeds: [
-        {
-          color: colors.info,
-          title: "Now Playing!",
-          description: `${data.artists[0].name} - ${data.name}`,
-        },
-      ],
-    });
+    if (!queue.playing) {
+      playTrack(queue, player, connection, interaction, client);
+    }
   } catch (error) {
     await interaction.reply({ embeds: [errorEmbed] });
   }

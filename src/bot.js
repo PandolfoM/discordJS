@@ -17,6 +17,7 @@ module.exports.client = client;
 client.commands = new Collection();
 client.snipes = new Collection();
 client.player = new Collection();
+client.musicQueue = new Collection();
 
 require("dotenv").config();
 
