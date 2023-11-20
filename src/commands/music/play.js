@@ -10,7 +10,6 @@ const fetch = require("isomorphic-unfetch");
 const { google } = require("googleapis");
 const { getPreview } = require("spotify-url-info")(fetch);
 const soundcloud = require("soundcloud-downloader").default;
-const fs = require("fs");
 
 const validUrls = ["youtu.be", "youtube.com"];
 
