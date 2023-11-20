@@ -1,5 +1,4 @@
 const {
-  // StreamType,
   createAudioPlayer,
   joinVoiceChannel,
   createAudioResource,
@@ -7,11 +6,6 @@ const {
 const play = require("play-dl");
 const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const colors = require("../../config/colors");
-// const ytdl = require("ytdl-core");
-// const fetch = require("isomorphic-unfetch");
-// const { google } = require("googleapis");
-// const { getPreview } = require("spotify-url-info")(fetch);
-// const soundcloud = require("soundcloud-downloader").default;
 
 const validUrls = ["youtu.be", "youtube.com"];
 
@@ -94,22 +88,8 @@ async function playYouTube(url, player, connection, interaction) {
   } catch (error) {
     await interaction.reply({ embeds: [errorEmbed] });
   }
-
-  // ! Leaving this in just incase play-dl goes down for some reason (Uncomment/comment import) ! //
-
-  // const stream = await ytdl(url, { filter: "audioonly" });
-
-  // const resource = createAudioResource(stream, {
-  //   inputType: StreamType.Arbitrary,
-  // });
-
-  // player.play(resource);
-  // connection.subscribe(player);
-
-  // await interaction.reply("Playing now!");
 }
 
-// ! Leaving this in just incase play-dl goes down for some reason (Uncomment/comment import) ! //
 async function playSoundcloud(url, player, connection, interaction) {
   try {
     if (play.is_expired()) {
@@ -142,22 +122,13 @@ async function playSoundcloud(url, player, connection, interaction) {
         {
           color: colors.info,
           title: "Now Playing!",
-          description: `${data.name} by ${data.publisher.artist}`,
+          description: `${data.publisher.artist} - ${data.name}`,
         },
       ],
     });
   } catch (error) {
     await interaction.reply({ embeds: [errorEmbed] });
   }
-  // soundcloud.download(url).then((stream) => {
-  //   const resource = createAudioResource(stream, {
-  //     inputType: StreamType.Arbitrary,
-  //   });
-  //   player.play(resource);
-  //   connection.subscribe(player);
-  // });
-
-  // await interaction.reply("Playing now!");
 }
 
 async function playSpotify(url, player, connection, interaction) {
@@ -199,57 +170,11 @@ async function playSpotify(url, player, connection, interaction) {
         {
           color: colors.info,
           title: "Now Playing!",
-          description: `${data.name} by ${data.artists[0].name}`,
+          description: `${data.artists[0].name} - ${data.name}`,
         },
       ],
     });
   } catch (error) {
     await interaction.reply({ embeds: [errorEmbed] });
   }
-
-  // ! Leaving this in just incase play-dl goes down for some reason (Uncomment/comment import) ! //
-
-  // const trackInfo = await getPreview(url);
-
-  // if (trackInfo?.title && trackInfo?.artist) {
-  //   const ytSearch = await searchYouTube(
-  //     `${trackInfo.artist} ${trackInfo.title}`
-  //   );
-
-  //   const stream = await ytdl(ytSearch, { filter: "audioonly" });
-
-  //   const resource = createAudioResource(stream, {
-  //     inputType: StreamType.Arbitrary,
-  //   });
-
-  //   player.play(resource);
-  //   connection.subscribe(player);
-
-  //   await interaction.reply("Playing Spotify now!");
-  // } else {
-  //   await interaction.reply("Failed to retrieve Spotify audio preview.");
-  // }
 }
-
-// async function searchYouTube(query) {
-//   const youtube = google.youtube({
-//     version: "v3",
-//     auth: process.env.YOUTUBEAPIKEY,
-//   });
-
-//   try {
-//     const response = await youtube.search.list({
-//       part: "snippet",
-//       q: query,
-//       type: "video",
-//     });
-
-//     const videoId = response.data.items[0].id.videoId;
-//     const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
-
-//     return videoUrl;
-//   } catch (error) {
-//     console.error("Error searching YouTube:", error.message);
-//     return null;
-//   }
-// }
