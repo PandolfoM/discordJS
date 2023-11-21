@@ -9,13 +9,9 @@ const {
   playNextTrack,
   hasDJ,
 } = require("../../utils/musicUtils");
-const Logger = require("../../utils/logger");
+const { errorEmbed } = require("../../config/embeds");
 
 const validUrls = ["youtu.be", "youtube.com"];
-
-const errorEmbed = new EmbedBuilder()
-  .setColor(colors.error)
-  .setTitle("There has been an error!");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -32,11 +28,7 @@ module.exports = {
     const queue = getGuildQueue(guildid, client);
 
     player.on("stateChange", (oldState, newState) => {
-      if (
-        newState.status === "idle" &&
-        oldState.status !== "idle" &&
-        queue.queue.length > 0
-      ) {
+      if (newState.status === "idle" && oldState.status !== "idle") {
         playNextTrack(guildid, client, interaction, player);
       }
     });
@@ -86,7 +78,7 @@ module.exports = {
             });
           }
         } catch (error) {
-          Logger(error);
+          console.error(error);
           await interaction.reply({
             embeds: [
               {
@@ -137,8 +129,7 @@ async function playYouTube(
       playTrack(queue, player, connection, interaction, client);
     }
   } catch (error) {
-    console.log("YT error: " + error);
-    Logger(error);
+    console.error(error);
     await interaction.reply({ embeds: [errorEmbed] });
   }
 }
@@ -179,8 +170,7 @@ async function playSoundcloud(
       playTrack(queue, player, connection, interaction, client);
     }
   } catch (error) {
-    console.log("Soundcloud error: " + error);
-    Logger(error);
+    console.error(error);
     await interaction.reply({ embeds: [errorEmbed] });
   }
 }
@@ -228,8 +218,7 @@ async function playSpotify(
       playTrack(queue, player, connection, interaction, client);
     }
   } catch (error) {
-    console.log("SPotify error: " + error);
-    Logger(error);
+    console.error(error);
     await interaction.reply({ embeds: [errorEmbed] });
   }
 }

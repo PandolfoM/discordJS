@@ -2,6 +2,7 @@ const { createAudioResource, getVoiceConnection } = require("@discordjs/voice");
 const colors = require("../config/colors");
 const { EmbedBuilder } = require("discord.js");
 const play = require("play-dl");
+const { errorEmbed } = require("../config/embeds");
 
 async function enqueue(queue, title, url, interaction, client) {
   const track = { title, url };
@@ -38,18 +39,7 @@ async function playTrack(queue, player, connection, interaction, client) {
   }
 
   try {
-    const stream = await play.stream(track.url, {
-      discordPlayerCompatibility: true,
-      quality: 2,
-      language: "en-US",
-    });
-
-    const resource = createAudioResource(stream.stream, {
-      inputType: stream.type,
-    });
-
-    player.play(resource);
-    connection.subscribe(player);
+    await createStream(track.url, player, connection);
 
     client.musicQueue.set(interaction.guild.id, {
       playing: true,
@@ -68,7 +58,7 @@ async function playTrack(queue, player, connection, interaction, client) {
       ],
     });
   } catch (error) {
-    console.error(error);
+    await interaction.reply({ embeds: [errorEmbed] });
   }
 }
 
@@ -96,26 +86,18 @@ async function playNextTrack(guildId, client, interaction, player) {
   // Check if there are tracks in the queue
   if (queue.queue.length > 0) {
     await queue.queue.shift();
-    const stream = await play.stream(queue.queue[0].url, {
-      discordPlayerCompatibility: true,
-      quality: 2,
-      language: "en-US",
-    });
 
-    const resource = createAudioResource(stream.stream, {
-      inputType: stream.type,
-    });
+    if (queue.queue.length > 1) {
+      await createStream(queue.queue[0].url, player, connection);
 
-    player.play(resource);
-    connection.subscribe(player);
+      const nowPlayingEmbed = new EmbedBuilder()
+        .setColor(colors.info)
+        .setTitle("Now Playing!")
+        .setDescription(`${queue.queue[0].title}`);
 
-    const nowPlayingEmbed = new EmbedBuilder()
-      .setColor(colors.info)
-      .setTitle("Now Playing!")
-      .setDescription(`${queue.queue[0].title}`);
-
-    await interaction.deferReply({ ephemeral: true });
-    await interaction.editReply({ embeds: [nowPlayingEmbed] });
+      await interaction.deferReply({ ephemeral: true });
+      await interaction.editReply({ embeds: [nowPlayingEmbed] });
+    }
   } else {
     // No more tracks in the queue, stop playing
     player.stop();
@@ -143,6 +125,28 @@ async function hasDJ(interaction) {
         },
       ],
     });
+  }
+}
+
+async function createStream(url, player, connection) {
+  try {
+    const stream = await play.stream(url, {
+      discordPlayerCompatibility: true,
+      quality: 2,
+      language: "en-US",
+    });
+
+    const resource = createAudioResource(stream.stream, {
+      inputType: stream.type,
+      inlineVolume: true,
+    });
+
+    resource.volume.setVolume(0.2);
+
+    player.play(resource);
+    connection.subscribe(player);
+  } catch (error) {
+    console.error(error);
   }
 }
 
