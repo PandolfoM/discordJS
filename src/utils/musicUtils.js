@@ -58,7 +58,7 @@ async function playTrack(queue, player, connection, interaction, client) {
       ],
     });
   } catch (error) {
-    await interaction.editReply({ embeds: [errorEmbed] });
+    await interaction.reply({ embeds: [errorEmbed] });
   }
 }
 
