@@ -43,34 +43,21 @@ module.exports = {
             guildId: channel.guildId,
             adapterCreator: channel.guild.voiceAdapterCreator,
           });
+          const params = {
+            url,
+            player,
+            connection,
+            interaction,
+            queue,
+            client,
+          };
 
           if (validUrls.some((validUrl) => url.includes(validUrl))) {
-            await playYouTube(
-              url,
-              player,
-              connection,
-              interaction,
-              queue,
-              client
-            );
+            await playYouTube(params);
           } else if (url.includes("open.spotify.com")) {
-            await playSpotify(
-              url,
-              player,
-              connection,
-              interaction,
-              queue,
-              client
-            );
+            await playSpotify(params);
           } else if (url.includes("soundcloud.com")) {
-            await playSoundcloud(
-              url,
-              player,
-              connection,
-              interaction,
-              queue,
-              client
-            );
+            await playSoundcloud(params);
           } else {
             await interaction.reply({
               content: "Not a valid URL",
@@ -102,14 +89,8 @@ module.exports = {
   },
 };
 
-async function playYouTube(
-  url,
-  player,
-  connection,
-  interaction,
-  queue,
-  client
-) {
+async function playYouTube(params) {
+  const { url, player, connection, interaction, queue, client } = params;
   try {
     const data = await play.video_info(url, {
       discordPlayerCompatibility: true,
@@ -134,14 +115,8 @@ async function playYouTube(
   }
 }
 
-async function playSoundcloud(
-  url,
-  player,
-  connection,
-  interaction,
-  queue,
-  client
-) {
+async function playSoundcloud(params) {
+  const { url, player, connection, interaction, queue, client } = params;
   try {
     if (play.is_expired()) {
       // ! Keep checking this page for developer signups https://soundcloud.com/you/apps ! //
@@ -175,14 +150,8 @@ async function playSoundcloud(
   }
 }
 
-async function playSpotify(
-  url,
-  player,
-  connection,
-  interaction,
-  queue,
-  client
-) {
+async function playSpotify(params) {
+  const { url, player, connection, interaction, queue, client } = params;
   try {
     if (play.is_expired()) {
       await play.refreshToken();
