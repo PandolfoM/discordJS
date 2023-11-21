@@ -129,9 +129,27 @@ async function playNextTrack(guildId, client, interaction, player) {
   }
 }
 
+async function hasDJ(interaction) {
+  const member = interaction.guild.members.cache.get(interaction.user.id);
+  const hasRole = member.roles.cache.has("726269456871063603");
+  if (hasRole) {
+    return true;
+  } else {
+    await interaction.reply({
+      embeds: [
+        {
+          color: colors.error,
+          title: "You are not allowed to play music",
+        },
+      ],
+    });
+  }
+}
+
 module.exports = {
   enqueue,
   getGuildQueue,
   playTrack,
   playNextTrack,
+  hasDJ,
 };

@@ -1,5 +1,5 @@
 const { SlashCommandBuilder } = require("discord.js");
-const { playNextTrack } = require("../../utils/musicUtils");
+const { playNextTrack, hasDJ } = require("../../utils/musicUtils");
 const { createAudioPlayer } = require("@discordjs/voice");
 const colors = require("../../config/colors");
 
@@ -12,41 +12,43 @@ module.exports = {
     const guildid = interaction.guild.id;
     const player = createAudioPlayer();
 
-    if (channel) {
-      if (client.musicQueue.get(guildid)) {
-        try {
-          playNextTrack(guildid, client, interaction, player);
-        } catch (error) {
+    if (await hasDJ(interaction)) {
+      if (channel) {
+        if (client.musicQueue.get(guildid)) {
+          try {
+            playNextTrack(guildid, client, interaction, player);
+          } catch (error) {
+            await interaction.reply({
+              embeds: [
+                {
+                  color: colors.error,
+                  title: "There was an error",
+                },
+              ],
+            });
+          }
+        } else {
           await interaction.reply({
             embeds: [
               {
                 color: colors.error,
-                title: "There was an error",
+                title: "There are no tracks in the queue",
               },
             ],
           });
         }
       } else {
-        await interaction.reply({
-          embeds: [
-            {
-              color: colors.error,
-              title: "There are no tracks in the queue",
-            },
-          ],
-        });
+        await interaction.reply(
+          await interaction.reply({
+            embeds: [
+              {
+                color: colors.error,
+                title: "Join a voice channel and try again",
+              },
+            ],
+          })
+        );
       }
-    } else {
-      await interaction.reply(
-        await interaction.reply({
-          embeds: [
-            {
-              color: colors.error,
-              title: "Join a voice channel and try again",
-            },
-          ],
-        })
-      );
     }
   },
 };

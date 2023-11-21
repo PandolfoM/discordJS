@@ -7,6 +7,7 @@ const {
   enqueue,
   playTrack,
   playNextTrack,
+  hasDJ,
 } = require("../../utils/musicUtils");
 
 const validUrls = ["youtu.be", "youtube.com"];
@@ -37,55 +38,69 @@ module.exports = {
 
     client.player.set(guildid, player);
 
-    if (channel) {
-      try {
-        const connection = await joinVoiceChannel({
-          channelId: channel.id,
-          guildId: channel.guildId,
-          adapterCreator: channel.guild.voiceAdapterCreator,
-        });
+    if (await hasDJ(interaction)) {
+      if (channel) {
+        try {
+          const connection = await joinVoiceChannel({
+            channelId: channel.id,
+            guildId: channel.guildId,
+            adapterCreator: channel.guild.voiceAdapterCreator,
+          });
 
-        if (validUrls.some((validUrl) => url.includes(validUrl))) {
-          await playYouTube(
-            url,
-            player,
-            connection,
-            interaction,
-            queue,
-            client
-          );
-        } else if (url.includes("open.spotify.com")) {
-          await playSpotify(
-            url,
-            player,
-            connection,
-            interaction,
-            queue,
-            client
-          );
-        } else if (url.includes("soundcloud.com")) {
-          await playSoundcloud(
-            url,
-            player,
-            connection,
-            interaction,
-            queue,
-            client
-          );
-        } else {
+          if (validUrls.some((validUrl) => url.includes(validUrl))) {
+            await playYouTube(
+              url,
+              player,
+              connection,
+              interaction,
+              queue,
+              client
+            );
+          } else if (url.includes("open.spotify.com")) {
+            await playSpotify(
+              url,
+              player,
+              connection,
+              interaction,
+              queue,
+              client
+            );
+          } else if (url.includes("soundcloud.com")) {
+            await playSoundcloud(
+              url,
+              player,
+              connection,
+              interaction,
+              queue,
+              client
+            );
+          } else {
+            await interaction.reply({
+              content: "Not a valid URL",
+              ephemeral: true,
+            });
+          }
+        } catch (error) {
+          console.error("Error while playing:", error);
           await interaction.reply({
-            content: "Not a valid URL",
-            ephemeral: true,
+            embeds: [
+              {
+                color: colors.error,
+                title: "An error occurred while trying to play the song.",
+              },
+            ],
           });
         }
-      } catch (error) {
-        console.error("Error while playing:", error);
-        await interaction.reply(
-          "An error occurred while trying to play the song."
-        );
+      } else {
+        await interaction.reply({
+          embeds: [
+            {
+              color: colors.error,
+              title: "Join a voice channel and try again",
+            },
+          ],
+        });
       }
-    } else {
-      await interaction.reply("Join a voice channel then try again!");
     }
   },
 };
