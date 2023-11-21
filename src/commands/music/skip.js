@@ -2,6 +2,7 @@ const { SlashCommandBuilder } = require("discord.js");
 const { playNextTrack, hasDJ } = require("../../utils/musicUtils");
 const { createAudioPlayer } = require("@discordjs/voice");
 const colors = require("../../config/colors");
+const { noDjEmbed } = require("../../config/embeds");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -39,17 +40,19 @@ module.exports = {
           });
         }
       } else {
-        await interaction.reply(
-          await interaction.reply({
-            embeds: [
-              {
-                color: colors.error,
-                title: "Join a voice channel and try again",
-              },
-            ],
-          })
-        );
+        await interaction.reply({
+          embeds: [
+            {
+              color: colors.error,
+              title: "Join a voice channel and try again",
+            },
+          ],
+        });
       }
+    } else {
+      await interaction.reply({
+        embeds: [noDjEmbed],
+      });
     }
   },
 };

@@ -2,15 +2,14 @@ const { createAudioResource, getVoiceConnection } = require("@discordjs/voice");
 const colors = require("../config/colors");
 const { EmbedBuilder } = require("discord.js");
 const play = require("play-dl");
-const { errorEmbed } = require("../config/embeds");
+const { errorEmbed, noDjEmbed } = require("../config/embeds");
 
 async function enqueue(queue, title, url, interaction, client) {
-  await interaction.deferReply();
   const track = { title, url };
   queue.queue.push(track);
 
   if (client.musicQueue.get(interaction.guild.id).playing === true) {
-    await interaction.editReply({
+    await interaction.reply({
       embeds: [
         {
           color: colors.info,
@@ -64,17 +63,15 @@ async function playTrack(queue, player, connection, interaction, client) {
 }
 
 async function playNextTrack(guildId, client, interaction, player) {
-  await interaction.deferReply();
   const queue = getGuildQueue(guildId, client);
 
   if (!queue) {
-    console.error("No queue found for guild:", guildId);
-    return;
+    return console.error("No queue found for guild:", guildId);
   }
 
   const connection = getVoiceConnection(guildId);
   if (!connection) {
-    await interaction.editReply({
+    await interaction.reply({
       embeds: [
         {
           color: colors.error,
@@ -88,27 +85,24 @@ async function playNextTrack(guildId, client, interaction, player) {
   // Check if there are tracks in the queue
   if (queue.queue.length > 0) {
     await queue.queue.shift();
+    await createStream(queue.queue[0].url, player, connection);
 
-    if (queue.queue.length > 1) {
-      await createStream(queue.queue[0].url, player, connection);
+    const nowPlayingEmbed = new EmbedBuilder()
+      .setColor(colors.info)
+      .setTitle("Now Playing!")
+      .setDescription(`${queue.queue[0].title}`);
 
-      const nowPlayingEmbed = new EmbedBuilder()
-        .setColor(colors.info)
-        .setTitle("Now Playing!")
-        .setDescription(`${queue.queue[0].title}`);
+    await interaction.reply({ embeds: [nowPlayingEmbed] });
+  } else {
+    // No more tracks in the queue, stop playing
+    player.stop();
+    connection.destroy();
 
-      await interaction.editReply({ embeds: [nowPlayingEmbed] });
-    } else {
-      // No more tracks in the queue, stop playing
-      player.stop();
-      connection.destroy();
-
-      // Reset the queue and playing state
-      client.musicQueue.set(guildId, {
-        playing: false,
-        queue: [],
-      });
-    }
+    // Reset the queue and playing state
+    client.musicQueue.set(guildId, {
+      playing: false,
+      queue: [],
+    });
   }
 }
 
@@ -119,25 +113,19 @@ const allowedChannelIds = [
   /* #Moosic */
 ];
 async function hasDJ(interaction) {
-  await interaction.deferReply();
   const member = interaction.guild.members.cache.get(interaction.user.id);
   const hasRole = member.roles.cache.has("726269456871063603");
   if (allowedChannelIds.includes(interaction.channelId)) {
     if (hasRole) {
       return true;
     } else {
-      await interaction.editReply({
-        embeds: [
-          {
-            color: colors.error,
-            title: "You are not allowed to play music",
-          },
-        ],
+      await interaction.reply({
+        embeds: [noDjEmbed],
         ephemeral: true,
       });
     }
   } else {
-    await interaction.editReply({
+    await interaction.reply({
       embeds: [
         {
           color: colors.error,
