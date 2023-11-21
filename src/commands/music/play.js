@@ -137,6 +137,7 @@ async function playYouTube(
       playTrack(queue, player, connection, interaction, client);
     }
   } catch (error) {
+    console.log("YT error: " + error);
     Logger(error);
     await interaction.reply({ embeds: [errorEmbed] });
   }
@@ -178,6 +179,7 @@ async function playSoundcloud(
       playTrack(queue, player, connection, interaction, client);
     }
   } catch (error) {
+    console.log("Soundcloud error: " + error);
     Logger(error);
     await interaction.reply({ embeds: [errorEmbed] });
   }
@@ -226,6 +228,7 @@ async function playSpotify(
       playTrack(queue, player, connection, interaction, client);
     }
   } catch (error) {
+    console.log("SPotify error: " + error);
     Logger(error);
     await interaction.reply({ embeds: [errorEmbed] });
   }
