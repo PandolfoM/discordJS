@@ -4,6 +4,7 @@ const { EmbedBuilder } = require("discord.js");
 const colors = require("../config/colors");
 const urlShortener = require("../utils/urlShortener");
 const { getUrls } = require("../utils/firebaseUtils");
+const logger = require("../utils/logger");
 
 const previousPrices = {};
 
@@ -21,8 +22,8 @@ async function sendDM(userid, item, price, image, url, drop) {
       )
       .setImage(`${image}`);
     user.send({ embeds: [embed] });
-  } catch (e) {
-    console.log(e);
+  } catch (error) {
+    logger(error);
   }
 }
 

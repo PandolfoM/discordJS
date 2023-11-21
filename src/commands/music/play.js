@@ -10,6 +10,7 @@ const {
   hasDJ,
 } = require("../../utils/musicUtils");
 const { errorEmbed } = require("../../config/embeds");
+const logger = require("../../utils/logger");
 
 const validUrls = ["youtu.be", "youtube.com"];
 
@@ -65,7 +66,7 @@ module.exports = {
             });
           }
         } catch (error) {
-          console.error(error);
+          logger(error);
           await interaction.reply({
             embeds: [
               {
@@ -110,7 +111,7 @@ async function playYouTube(params) {
       playTrack(queue, player, connection, interaction, client);
     }
   } catch (error) {
-    console.error(error);
+    logger(error);
     await interaction.reply({ embeds: [errorEmbed] });
   }
 }
@@ -145,7 +146,7 @@ async function playSoundcloud(params) {
       playTrack(queue, player, connection, interaction, client);
     }
   } catch (error) {
-    console.error(error);
+    logger(error);
     await interaction.reply({ embeds: [errorEmbed] });
   }
 }
@@ -187,7 +188,7 @@ async function playSpotify(params) {
       playTrack(queue, player, connection, interaction, client);
     }
   } catch (error) {
-    console.error(error);
+    logger(error);
     await interaction.reply({ embeds: [errorEmbed] });
   }
 }
