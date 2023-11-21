@@ -1,6 +1,6 @@
 const { createAudioPlayer, joinVoiceChannel } = require("@discordjs/voice");
 const play = require("play-dl");
-const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const { SlashCommandBuilder } = require("discord.js");
 const colors = require("../../config/colors");
 const {
   getGuildQueue,
