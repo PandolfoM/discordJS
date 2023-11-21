@@ -46,7 +46,7 @@ async function playTrack(queue, player, connection, interaction, client) {
       queue: client.musicQueue.get(interaction.guild.id).queue,
     });
 
-    await interaction.deferReply({ ephemeral: true });
+    await interaction.deferReply();
     await interaction.editReply({
       embeds: [
         {
@@ -58,7 +58,7 @@ async function playTrack(queue, player, connection, interaction, client) {
       ],
     });
   } catch (error) {
-    await interaction.reply({ embeds: [errorEmbed] });
+    await interaction.editReply({ embeds: [errorEmbed] });
   }
 }
 
@@ -95,7 +95,7 @@ async function playNextTrack(guildId, client, interaction, player) {
         .setTitle("Now Playing!")
         .setDescription(`${queue.queue[0].title}`);
 
-      await interaction.deferReply({ ephemeral: true });
+      await interaction.deferReply();
       await interaction.editReply({ embeds: [nowPlayingEmbed] });
     } else {
       // No more tracks in the queue, stop playing
@@ -111,19 +111,38 @@ async function playNextTrack(guildId, client, interaction, player) {
   }
 }
 
+const allowedChannelIds = [
+  "726271631227486253",
+  /* #Control */
+  "726273430588227624",
+  /* #Moosic */
+];
 async function hasDJ(interaction) {
   const member = interaction.guild.members.cache.get(interaction.user.id);
   const hasRole = member.roles.cache.has("726269456871063603");
-  if (hasRole) {
-    return true;
+  if (allowedChannelIds.includes(interaction.channelId)) {
+    if (hasRole) {
+      return true;
+    } else {
+      await interaction.reply({
+        embeds: [
+          {
+            color: colors.error,
+            title: "You are not allowed to play music",
+          },
+        ],
+        ephemeral: true,
+      });
+    }
   } else {
     await interaction.reply({
       embeds: [
         {
           color: colors.error,
-          title: "You are not allowed to play music",
+          title: `Type in https://discord.com/channels/${interaction.guild.id}/726273430588227624 to play music`,
         },
       ],
+      ephemeral: true,
     });
   }
 }
