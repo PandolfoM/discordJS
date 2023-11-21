@@ -9,6 +9,7 @@ const {
   playNextTrack,
   hasDJ,
 } = require("../../utils/musicUtils");
+const Logger = require("../../utils/logger");
 
 const validUrls = ["youtu.be", "youtube.com"];
 
@@ -85,7 +86,7 @@ module.exports = {
             });
           }
         } catch (error) {
-          console.error("Error while playing:", error);
+          Logger(error);
           await interaction.reply({
             embeds: [
               {
@@ -136,6 +137,7 @@ async function playYouTube(
       playTrack(queue, player, connection, interaction, client);
     }
   } catch (error) {
+    Logger(error);
     await interaction.reply({ embeds: [errorEmbed] });
   }
 }
@@ -176,6 +178,7 @@ async function playSoundcloud(
       playTrack(queue, player, connection, interaction, client);
     }
   } catch (error) {
+    Logger(error);
     await interaction.reply({ embeds: [errorEmbed] });
   }
 }
@@ -223,6 +226,7 @@ async function playSpotify(
       playTrack(queue, player, connection, interaction, client);
     }
   } catch (error) {
+    Logger(error);
     await interaction.reply({ embeds: [errorEmbed] });
   }
 }

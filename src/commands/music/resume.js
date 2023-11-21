@@ -1,6 +1,7 @@
 const { SlashCommandBuilder } = require("discord.js");
 const colors = require("../../config/colors");
 const { hasDJ } = require("../../utils/musicUtils");
+const Logger = require("../../utils/logger");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -22,7 +23,7 @@ module.exports = {
 
           await interaction.reply("Resuming...");
         } catch (error) {
-          console.error(error);
+          Logger(error);
           await interaction.reply("There has been an error!");
         }
       } else {
