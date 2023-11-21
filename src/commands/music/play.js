@@ -31,7 +31,11 @@ module.exports = {
     const queue = getGuildQueue(guildid, client);
 
     player.on("stateChange", (oldState, newState) => {
-      if (newState.status === "idle" && oldState.status !== "idle") {
+      if (
+        newState.status === "idle" &&
+        oldState.status !== "idle" &&
+        queue.queue.length > 0
+      ) {
         playNextTrack(guildid, client, interaction, player);
       }
     });
