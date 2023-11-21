@@ -5,11 +5,12 @@ const play = require("play-dl");
 const { errorEmbed } = require("../config/embeds");
 
 async function enqueue(queue, title, url, interaction, client) {
+  await interaction.deferReply();
   const track = { title, url };
   queue.queue.push(track);
 
   if (client.musicQueue.get(interaction.guild.id).playing === true) {
-    await interaction.reply({
+    await interaction.editReply({
       embeds: [
         {
           color: colors.info,
@@ -32,6 +33,7 @@ function getGuildQueue(guildId, client) {
 }
 
 async function playTrack(queue, player, connection, interaction, client) {
+  await interaction.deferReply();
   const track = queue.queue[0];
 
   if (!track) {
@@ -46,7 +48,6 @@ async function playTrack(queue, player, connection, interaction, client) {
       queue: client.musicQueue.get(interaction.guild.id).queue,
     });
 
-    await interaction.deferReply();
     await interaction.editReply({
       embeds: [
         {
@@ -58,12 +59,12 @@ async function playTrack(queue, player, connection, interaction, client) {
       ],
     });
   } catch (error) {
-    await interaction.deferReply();
     await interaction.editReply({ embeds: [errorEmbed] });
   }
 }
 
 async function playNextTrack(guildId, client, interaction, player) {
+  await interaction.deferReply();
   const queue = getGuildQueue(guildId, client);
 
   if (!queue) {
@@ -73,7 +74,7 @@ async function playNextTrack(guildId, client, interaction, player) {
 
   const connection = getVoiceConnection(guildId);
   if (!connection) {
-    await interaction.reply({
+    await interaction.editReply({
       embeds: [
         {
           color: colors.error,
@@ -96,7 +97,6 @@ async function playNextTrack(guildId, client, interaction, player) {
         .setTitle("Now Playing!")
         .setDescription(`${queue.queue[0].title}`);
 
-      await interaction.deferReply();
       await interaction.editReply({ embeds: [nowPlayingEmbed] });
     } else {
       // No more tracks in the queue, stop playing
@@ -119,13 +119,14 @@ const allowedChannelIds = [
   /* #Moosic */
 ];
 async function hasDJ(interaction) {
+  await interaction.deferReply();
   const member = interaction.guild.members.cache.get(interaction.user.id);
   const hasRole = member.roles.cache.has("726269456871063603");
   if (allowedChannelIds.includes(interaction.channelId)) {
     if (hasRole) {
       return true;
     } else {
-      await interaction.reply({
+      await interaction.editReply({
         embeds: [
           {
             color: colors.error,
@@ -136,7 +137,7 @@ async function hasDJ(interaction) {
       });
     }
   } else {
-    await interaction.reply({
+    await interaction.editReply({
       embeds: [
         {
           color: colors.error,
