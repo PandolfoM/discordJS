@@ -97,17 +97,17 @@ async function playNextTrack(guildId, client, interaction, player) {
 
       await interaction.deferReply({ ephemeral: true });
       await interaction.editReply({ embeds: [nowPlayingEmbed] });
-    }
-  } else {
-    // No more tracks in the queue, stop playing
-    player.stop();
-    connection.destroy();
+    } else {
+      // No more tracks in the queue, stop playing
+      player.stop();
+      connection.destroy();
 
-    // Reset the queue and playing state
-    client.musicQueue.set(guildId, {
-      playing: false,
-      queue: [],
-    });
+      // Reset the queue and playing state
+      client.musicQueue.set(guildId, {
+        playing: false,
+        queue: [],
+      });
+    }
   }
 }
 
