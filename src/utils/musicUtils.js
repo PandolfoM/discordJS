@@ -92,7 +92,8 @@ async function playNextTrack(guildId, client, interaction, player) {
       .setTitle("Now Playing!")
       .setDescription(`${queue.queue[0].title}`);
 
-    await interaction.reply({ embeds: [nowPlayingEmbed] });
+    // await interaction.reply({ embeds: [nowPlayingEmbed] });
+    await interaction.channel.send({ embeds: [nowPlayingEmbed] });
   } else {
     // No more tracks in the queue, stop playing
     player.stop();
