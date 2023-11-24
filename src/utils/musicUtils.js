@@ -110,7 +110,6 @@ async function playNextTrack(guildId, client, interaction, player) {
       });
     }
   } else {
-    console.log("stop 1");
     // No more tracks in the queue, stop playing
     player.stop();
     connection.destroy();
