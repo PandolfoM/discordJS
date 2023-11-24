@@ -85,19 +85,32 @@ async function playNextTrack(guildId, client, interaction, player) {
   // Check if there are tracks in the queue
   if (queue.queue.length > 0) {
     await queue.queue.shift();
-    await createStream(queue.queue[0].url, player, connection);
+    if (queue.queue.length > 0) {
+      await createStream(queue.queue[0].url, player, connection);
 
-    const nowPlayingEmbed = new EmbedBuilder()
-      .setColor(colors.info)
-      .setTitle("Now Playing!")
-      .setDescription(`${queue.queue[0].title}`);
+      const nowPlayingEmbed = new EmbedBuilder()
+        .setColor(colors.info)
+        .setTitle("Now Playing!")
+        .setDescription(`${queue.queue[0].title}`);
 
-    if (interaction.replied) {
-      await interaction.channel.send({ embeds: [nowPlayingEmbed] });
+      if (interaction.replied) {
+        await interaction.channel.send({ embeds: [nowPlayingEmbed] });
+      } else {
+        await interaction.reply({ embeds: [nowPlayingEmbed] });
+      }
     } else {
-      await interaction.reply({ embeds: [nowPlayingEmbed] });
+      // No more tracks in the queue, stop playing
+      player.stop();
+      connection.destroy();
+
+      // Reset the queue and playing state
+      client.musicQueue.set(guildId, {
+        playing: false,
+        queue: [],
+      });
     }
   } else {
+    console.log("stop 1");
     // No more tracks in the queue, stop playing
     player.stop();
     connection.destroy();

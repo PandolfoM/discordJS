@@ -150,16 +150,16 @@ async function playYouTube(params) {
 async function playSoundcloud(params) {
   const { url, player, connection, interaction, queue, client } = params;
   try {
-    if (play.is_expired()) {
-      // ! Keep checking this page for developer signups https://soundcloud.com/you/apps ! //
-      const newToken = await play.getFreeClientID();
-      play.setToken({
-        soundcloud: {
-          client_id: newToken,
-        },
-      });
-      await play.refreshToken();
-    }
+    // if (play.is_expired()) {
+    // ! Keep checking this page for developer signups https://soundcloud.com/you/apps ! //
+    const newToken = await play.getFreeClientID();
+    play.setToken({
+      soundcloud: {
+        client_id: newToken,
+      },
+    });
+    await play.refreshToken();
+    // }
 
     const data = await play.soundcloud(url, {
       discordPlayerCompatibility: true,
