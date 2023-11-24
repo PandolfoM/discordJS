@@ -63,9 +63,12 @@ module.exports = {
 
     try {
       await member.timeout(duration, reason);
-      await interaction.channel.send({ embeds: [embed] });
+      await interaction.reply({ embeds: [embed] });
     } catch (error) {
-      await interaction.channel.send("Not enough permission");
+      await interaction.channel.send({
+        embeds: [{ color: colors.error, title: "Not enough permission" }],
+        ephemeral: true,
+      });
     }
   },
 };

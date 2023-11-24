@@ -2,6 +2,7 @@ const { getVoiceConnection } = require("@discordjs/voice");
 const { SlashCommandBuilder } = require("discord.js");
 const colors = require("../../config/colors");
 const { hasDJ } = require("../../utils/musicUtils");
+const logger = require("../../utils/logger");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -24,9 +25,11 @@ module.exports = {
             queue: [],
           });
 
-          await interaction.reply("Bot disconnected");
+          await interaction.reply({
+            embeds: [{ color: colors.info, title: "Bot disconnected" }],
+          });
         } catch (error) {
-          console.error(error);
+          logger(error);
         }
       } else {
         await interaction.reply({

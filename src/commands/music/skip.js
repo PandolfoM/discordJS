@@ -2,7 +2,8 @@ const { SlashCommandBuilder } = require("discord.js");
 const { playNextTrack, hasDJ } = require("../../utils/musicUtils");
 const { createAudioPlayer } = require("@discordjs/voice");
 const colors = require("../../config/colors");
-const { noDjEmbed } = require("../../config/embeds");
+const { noDjEmbed, errorEmbed } = require("../../config/embeds");
+const logger = require("../../utils/logger");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -19,15 +20,8 @@ module.exports = {
           try {
             playNextTrack(guildid, client, interaction, player);
           } catch (error) {
-            console.error(error);
-            await interaction.reply({
-              embeds: [
-                {
-                  color: colors.error,
-                  title: "There was an error",
-                },
-              ],
-            });
+            logger(error);
+            await interaction.reply({ embeds: [errorEmbed] });
           }
         } else {
           await interaction.reply({

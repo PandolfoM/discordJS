@@ -1,12 +1,14 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
-const { Configuration, OpenAIApi } = require("openai");
+const { OpenAI } = require("openai");
+const { errorEmbed } = require("../../config/embeds");
+const colors = require("../../config/colors");
 require("dotenv").config();
 
-const config = new Configuration({
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_KEY,
 });
 
-const openai = new OpenAIApi(config);
+// const openai = new OpenAIApi(config);
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -27,22 +29,40 @@ module.exports = {
     `;
 
     try {
-      const response = await openai.createCompletion({
+      await interaction.reply({
+        embeds: [
+          {
+            color: colors.info,
+            title: "One moment...",
+          },
+        ],
+      });
+
+      const response = await openai.chat.completions.create({
         prompt,
-        model: "text-davinci-003",
-        max_tokens: 500,
-        temperature: 0.7,
-        top_p: 1,
-        frequency_penalty: 0,
-        presence_penalty: 0,
+        model: "gpt-3.5-turbo",
+        // max_tokens: 500,
+        // temperature: 0.7,
+        // top_p: 1,
+        // frequency_penalty: 0,
+        // presence_penalty: 0,
         stop: ["\n"],
       });
       const text = response.data.choices[0].text.substring(0);
-      await interaction.reply("One moment...");
+
       return await interaction.editReply(String(text));
     } catch (e) {
-      console.log(e);
-      return await interaction.reply("There was an error!");
+      if (OpenAI.RateLimitError) {
+        return interaction.editReply({
+          embeds: [
+            {
+              color: colors.error,
+              title: "Rate limit exceeded!",
+            },
+          ],
+        });
+      }
+      return await interaction.editReply({ embeds: [errorEmbed] });
     }
   },
 };
