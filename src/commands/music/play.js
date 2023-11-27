@@ -185,10 +185,6 @@ async function playSoundcloud(params) {
 async function playSpotify(params) {
   const { url, player, connection, interaction, queue, client } = params;
   try {
-    if (play.is_expired()) {
-      await play.refreshToken();
-    }
-
     await play.setToken({
       spotify: {
         client_id: process.env.PLAYCLIENTID,
@@ -197,6 +193,10 @@ async function playSpotify(params) {
         market: "US",
       },
     });
+
+    if (play.is_expired()) {
+      await play.refreshToken();
+    }
 
     const data = await play.spotify(url);
 
