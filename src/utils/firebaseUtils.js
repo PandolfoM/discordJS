@@ -6,9 +6,13 @@ const {
   doc,
   arrayUnion,
   getDoc,
+  setDoc,
 } = require("firebase/firestore");
 const db = require("../firebaseConfig");
 const webscrapeItem = require("../functions/webscrapeItem");
+const logger = require("./logger");
+const { errorEmbed } = require("../config/embeds");
+const colors = require("../config/colors");
 
 async function getUrls() {
   try {
@@ -30,26 +34,52 @@ async function getUrls() {
   }
 }
 
-async function addItem(userid, url, name) {
+async function addItem(interaction, url, name) {
   return (async () => {
     try {
-      const ref = doc(db, "webscraper", userid);
+      const ref = doc(db, "webscraper", interaction.user.id);
+      const docSnap = await getDoc(ref);
+
+      let itemToAdd;
+
       if (name) {
-        await updateDoc(ref, {
-          items: arrayUnion({ url: url, name: name }),
-        });
-        return true;
+        itemToAdd = { url: url, name: name };
       } else {
         const itemName = await webscrapeItem(url);
         if (itemName) {
-          await updateDoc(ref, {
-            items: arrayUnion({ url: url, name: itemName }),
-          });
-          return true;
+          itemToAdd = { url: url, name: itemName };
         }
       }
+
+      if (docSnap.exists() && itemToAdd) {
+        await updateDoc(ref, {
+          items: arrayUnion(itemToAdd),
+        });
+        return true;
+      } else if (itemToAdd) {
+        await setDoc(ref, {
+          id: interaction.user.id,
+          items: arrayUnion(itemToAdd),
+        });
+        return true;
+      } else {
+        await interaction.editReply({
+          embeds: [
+            {
+              color: colors.error,
+              title: "No item to add",
+            },
+          ],
+          ephemeral: true,
+        });
+        return false;
+      }
     } catch (error) {
-      console.log(error);
+      logger(error);
+      await interaction.editReply({
+        embeds: [errorEmbed],
+        ephemeral: true,
+      });
     }
   })();
 }

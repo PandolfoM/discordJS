@@ -1,5 +1,8 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
 const { addItem } = require("../../utils/firebaseUtils");
+const { errorEmbed } = require("../../config/embeds");
+const colors = require("../../config/colors");
+const logger = require("../../utils/logger");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -21,28 +24,43 @@ module.exports = {
     ) {
       try {
         await interaction.reply({
-          content: `Adding item...`,
+          embeds: [
+            {
+              color: colors.info,
+              title: "Adding item...",
+            },
+          ],
           ephemeral: true,
         });
-        const addFunc = await addItem(interaction.user.id, url, name);
+        const addFunc = await addItem(interaction, url, name);
         if (addFunc) {
           await interaction.editReply({
-            content: `Added: ${url}`,
+            embeds: [
+              {
+                color: colors.success,
+                title: `Added: ${url}`,
+              },
+            ],
             ephemeral: true,
           });
         }
       } catch (error) {
-        console.log(error);
-      }
-    } else {
-      try {
-        await interaction.reply({
-          content: "Not a valid url",
+        logger(error);
+        await interaction.editReply({
+          embeds: [errorEmbed],
           ephemeral: true,
         });
-      } catch (error) {
-        console.log(error);
       }
+    } else {
+      await interaction.reply({
+        embeds: [
+          {
+            color: colors.error,
+            title: "Not a valid url",
+          },
+        ],
+        ephemeral: true,
+      });
     }
   },
 };
