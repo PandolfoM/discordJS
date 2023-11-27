@@ -86,7 +86,12 @@ module.exports = {
         }
       } else {
         await interaction.reply({
-          content: "You don't have any watched items",
+          embeds: [
+            {
+              color: colors.error,
+              title: "You don't have any watched items",
+            },
+          ],
           ephemeral: true,
         });
       }
