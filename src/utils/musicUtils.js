@@ -122,22 +122,22 @@ async function playNextTrack(guildId, client, interaction, player) {
   }
 }
 
-const allowedChannelIds = [
-  "726271631227486253",
-  /* #Control */
-  "726273430588227624",
-  /* #Moosic */
-];
 async function hasDJ(interaction, client) {
+  const allowedChannelIds = [
+    client.settings.get(interaction.guild.id).devChannel,
+    client.settings.get(interaction.guild.id).musicChannel,
+  ];
+  const role = client.settings.get(interaction.guild.id).djRole;
+  const musicChannel = client.settings.get(interaction.guild.id).musicChannel;
   const member = interaction.guild.members.cache.get(interaction.user.id);
-  const hasRole = member.roles.cache.has(
-    client.settings.get(interaction.guild.id).djRole
-  );
+  const hasRole = member.roles.cache.has(role);
   if (
     allowedChannelIds.includes(interaction.channelId) ||
-    allowedChannelIds.length === 0
+    client.settings.get(interaction.guild.id).musicChannel === "0"
   ) {
-    if (hasRole) {
+    if (role === "0") {
+      return true;
+    } else if (hasRole) {
       return true;
     } else {
       await interaction.reply({
@@ -150,7 +150,7 @@ async function hasDJ(interaction, client) {
       embeds: [
         {
           color: colors.error,
-          title: `Type in https://discord.com/channels/${interaction.guild.id}/726273430588227624 to play music`,
+          title: `Type in https://discord.com/channels/${interaction.guild.id}/${musicChannel} to play music`,
         },
       ],
       ephemeral: true,

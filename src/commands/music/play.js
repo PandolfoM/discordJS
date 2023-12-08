@@ -66,12 +66,17 @@ module.exports = {
               ]);
               // Seems to be reconnecting to a new channel - ignore disconnect
             } catch (error) {
-              // Seems to be a real disconnect which SHOULDN'T be recovered from
-              connection.destroy();
-              client.musicQueue.set(guildid, {
-                playing: false,
-                queue: [],
-              });
+              try {
+                // Seems to be a real disconnect which SHOULDN'T be recovered from
+                connection.destroy();
+                client.player.get(interaction.guild.id).stop();
+                client.musicQueue.set(guildid, {
+                  playing: false,
+                  queue: [],
+                });
+              } catch (e) {
+                logger(e);
+              }
             }
           });
 
