@@ -41,7 +41,7 @@ module.exports = {
 
     client.player.set(guildid, player);
 
-    if (await hasDJ(interaction)) {
+    if (await hasDJ(interaction, client)) {
       if (channel) {
         try {
           const connection = await joinVoiceChannel({

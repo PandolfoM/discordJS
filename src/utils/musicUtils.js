@@ -128,10 +128,15 @@ const allowedChannelIds = [
   "726273430588227624",
   /* #Moosic */
 ];
-async function hasDJ(interaction) {
+async function hasDJ(interaction, client) {
   const member = interaction.guild.members.cache.get(interaction.user.id);
-  const hasRole = member.roles.cache.has("726269456871063603");
-  if (allowedChannelIds.includes(interaction.channelId)) {
+  const hasRole = member.roles.cache.has(
+    client.settings.get(interaction.guild.id).djRole
+  );
+  if (
+    allowedChannelIds.includes(interaction.channelId) ||
+    allowedChannelIds.length === 0
+  ) {
     if (hasRole) {
       return true;
     } else {

@@ -10,7 +10,7 @@ module.exports = {
     const channel = interaction.member?.voice.channel;
     const guildid = interaction.guild.id;
 
-    if (await hasDJ(interaction)) {
+    if (await hasDJ(interaction, client)) {
       if (channel) {
         if (client.musicQueue.get(guildid)) {
           try {

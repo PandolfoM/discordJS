@@ -14,7 +14,7 @@ module.exports = {
     const guildid = interaction.guild.id;
     const player = createAudioPlayer();
 
-    if (await hasDJ(interaction)) {
+    if (await hasDJ(interaction, client)) {
       if (channel) {
         if (client.musicQueue.get(guildid)) {
           try {
