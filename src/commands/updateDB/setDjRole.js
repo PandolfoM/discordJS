@@ -8,28 +8,28 @@ const { PermissionFlagsBits } = require("discord.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("devchannel")
-    .setDescription("Set a channel where devs can test commands")
+    .setName("djrole")
+    .setDescription("Set the server DJ role")
     .addStringOption((option) =>
-      option.setName("channel").setDescription("ID of channel")
+      option.setName("role").setDescription("ID of role")
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
   async execute(interaction, client) {
-    const channelID = interaction.options.getString("channel");
+    const roleID = interaction.options.getString("role");
     const guild = client.guilds.cache.get(interaction.guild.id);
 
-    const channel = guild.channels.cache.get(channelID);
+    const role = guild.roles.cache.get(roleID);
 
-    if (channelID === null) {
-      setDevChannel("0", interaction);
-    } else if (channel) {
-      setDevChannel(channelID, interaction);
+    if (roleID === null) {
+      setDJRole("0", interaction);
+    } else if (role) {
+      setDJRole(roleID, interaction);
     } else {
       await interaction.reply({
         embeds: [
           {
             color: colors.error,
-            title: "Not a valid channel ID",
+            title: "Not a valid role ID",
           },
         ],
       });
@@ -37,22 +37,22 @@ module.exports = {
   },
 };
 
-async function setDevChannel(channelID, interaction) {
+async function setDJRole(roleID, interaction) {
   try {
     const ref = doc(db, "settings", interaction.guild.id);
     const docSnap = await getDoc(ref);
 
     if (docSnap.exists()) {
       await updateDoc(ref, {
-        devChannel: channelID,
+        djRole: roleID,
       });
 
-      if (channelID === "0") {
+      if (roleID === "0") {
         await interaction.reply({
           embeds: [
             {
               color: colors.success,
-              title: `Dev channel removed`,
+              title: `DJ role removed`,
             },
           ],
           ephemeral: true,
@@ -62,7 +62,13 @@ async function setDevChannel(channelID, interaction) {
           embeds: [
             {
               color: colors.success,
-              title: `Dev channel set to <#${channelID}>`,
+              title: `DJ role set to:`,
+              fields: [
+                {
+                  name: "",
+                  value: `<@&${roleID}>`,
+                },
+              ],
             },
           ],
           ephemeral: true,

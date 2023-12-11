@@ -8,8 +8,8 @@ const { PermissionFlagsBits } = require("discord.js");
 
 module.exports = {
   data: new SlashCommandBuilder()
-    .setName("devchannel")
-    .setDescription("Set a channel where devs can test commands")
+    .setName("musicchannel")
+    .setDescription("Set a channel where music can be played")
     .addStringOption((option) =>
       option.setName("channel").setDescription("ID of channel")
     )
@@ -21,9 +21,9 @@ module.exports = {
     const channel = guild.channels.cache.get(channelID);
 
     if (channelID === null) {
-      setDevChannel("0", interaction);
+      setMusicChannel("0", interaction);
     } else if (channel) {
-      setDevChannel(channelID, interaction);
+      setMusicChannel(channelID, interaction);
     } else {
       await interaction.reply({
         embeds: [
@@ -37,14 +37,14 @@ module.exports = {
   },
 };
 
-async function setDevChannel(channelID, interaction) {
+async function setMusicChannel(channelID, interaction) {
   try {
     const ref = doc(db, "settings", interaction.guild.id);
     const docSnap = await getDoc(ref);
 
     if (docSnap.exists()) {
       await updateDoc(ref, {
-        devChannel: channelID,
+        musicChannel: channelID,
       });
 
       if (channelID === "0") {
@@ -52,7 +52,7 @@ async function setDevChannel(channelID, interaction) {
           embeds: [
             {
               color: colors.success,
-              title: `Dev channel removed`,
+              title: `Music channel removed`,
             },
           ],
           ephemeral: true,
@@ -62,7 +62,7 @@ async function setDevChannel(channelID, interaction) {
           embeds: [
             {
               color: colors.success,
-              title: `Dev channel set to <#${channelID}>`,
+              title: `Music channel set to <#${channelID}>`,
             },
           ],
           ephemeral: true,
