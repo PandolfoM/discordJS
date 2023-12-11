@@ -8,7 +8,8 @@ const logger = require("../../utils/logger");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("skip")
-    .setDescription("Skip to the next track"),
+    .setDescription("Skip to the next track")
+    .setDMPermission(false),
   async execute(interaction, client) {
     const channel = interaction.member?.voice.channel;
     const guildid = interaction.guild.id;

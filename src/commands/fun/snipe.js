@@ -5,7 +5,8 @@ const colors = require("../../config/colors");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("snipe")
-    .setDescription("Snipe last deleted message"),
+    .setDescription("Snipe last deleted message")
+    .setDMPermission(false),
   async execute(interaction, client) {
     try {
       const embed = new EmbedBuilder()

@@ -25,7 +25,8 @@ module.exports = {
     .setDescription("Jammies")
     .addStringOption((option) =>
       option.setName("url").setRequired(true).setDescription("Link")
-    ),
+    )
+    .setDMPermission(false),
   async execute(interaction, client) {
     const url = interaction.options.getString("url");
     const guildid = interaction.guild.id;

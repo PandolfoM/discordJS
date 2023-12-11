@@ -19,7 +19,8 @@ module.exports = {
     )
     .addSubcommand((subcommand) =>
       subcommand.setName("server").setDescription("Info about the server")
-    ),
+    )
+    .setDMPermission(false),
   async execute(interaction) {
     if (interaction.options.getSubcommand() === "user") {
       const user = interaction.options.getUser("target");

@@ -5,7 +5,8 @@ const { hasDJ } = require("../../utils/musicUtils");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("queue")
-    .setDescription("Show music queue"),
+    .setDescription("Show music queue")
+    .setDMPermission(false),
   async execute(interaction, client) {
     const channel = interaction.member?.voice.channel;
     const guildid = interaction.guild.id;

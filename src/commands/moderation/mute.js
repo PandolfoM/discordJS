@@ -21,7 +21,8 @@ module.exports = {
     .addStringOption((option) =>
       option.setName("reason").setDescription("Reason for mute")
     )
-    .setDefaultMemberPermissions(PermissionFlagsBits.MuteMembers),
+    .setDefaultMemberPermissions(PermissionFlagsBits.MuteMembers)
+    .setDMPermission(false),
   async execute(interaction) {
     const user = interaction.options.getUser("target");
     const duration = Number(

@@ -13,7 +13,8 @@ module.exports = {
     .addStringOption((option) =>
       option.setName("channel").setDescription("ID of channel")
     )
-    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+    .setDMPermission(false),
   async execute(interaction, client) {
     const channelID = interaction.options.getString("channel");
     const guild = client.guilds.cache.get(interaction.guild.id);

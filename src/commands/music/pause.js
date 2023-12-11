@@ -6,7 +6,8 @@ const { errorEmbed } = require("../../config/embeds");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("pause")
-    .setDescription("Pause the current track"),
+    .setDescription("Pause the current track")
+    .setDMPermission(false),
   async execute(interaction, client) {
     const channel = interaction.member?.voice.channel;
     const guildid = interaction.guild.id;

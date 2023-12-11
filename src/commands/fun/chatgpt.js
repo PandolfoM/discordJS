@@ -2,6 +2,7 @@ const { SlashCommandBuilder } = require("@discordjs/builders");
 const { OpenAI } = require("openai");
 const { errorEmbed } = require("../../config/embeds");
 const colors = require("../../config/colors");
+const { PermissionFlagsBits } = require("discord.js");
 require("dotenv").config();
 
 const openai = new OpenAI({
@@ -19,7 +20,8 @@ module.exports = {
         .setName("prompt")
         .setDescription("Prompt to ask OpenAI")
         .setRequired(true)
-    ),
+    )
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
   async execute(interaction) {
     const question = interaction.options.getString("prompt");
 

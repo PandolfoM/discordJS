@@ -13,7 +13,8 @@ module.exports = {
     .addStringOption((option) =>
       option.setName("role").setDescription("ID of role")
     )
-    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+    .setDMPermission(false),
   async execute(interaction, client) {
     const roleID = interaction.options.getString("role");
     const guild = client.guilds.cache.get(interaction.guild.id);
