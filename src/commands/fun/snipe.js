@@ -27,7 +27,6 @@ module.exports = {
         .setTimestamp(client.snipes.get(interaction.channelId).timestamp);
       await interaction.reply({ embeds: [embed] });
     } catch (error) {
-      console.log(error);
       await interaction.reply({
         content: "No message to snipe",
         ephemeral: true,
