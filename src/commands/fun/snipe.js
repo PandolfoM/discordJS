@@ -1,5 +1,4 @@
 const { SlashCommandBuilder } = require("@discordjs/builders");
-const { EmbedBuilder } = require("discord.js");
 const colors = require("../../config/colors");
 
 module.exports = {
@@ -9,22 +8,38 @@ module.exports = {
     .setDMPermission(false),
   async execute(interaction, client) {
     try {
-      const embed = new EmbedBuilder()
-        .setAuthor({
+      let image = false;
+      if (client.snipes.get(interaction.channelId).content.includes("http")) {
+        image = true;
+      }
+
+      const embed = {
+        color: colors.info,
+        title: "Sniped Message:",
+        author: {
           name: client.snipes.get(interaction.channelId).author.tag,
-          iconURL: client.snipes
+          icon_url: client.snipes
             .get(interaction.channelId)
             .author.avatarURL({ dynamic: true }),
-        })
-        .setThumbnail(
-          "https://media.tenor.com/images/14333b6252db0853a2c1331405e765c4/tenor.gif"
-        )
-        .addFields({
-          name: "Sniped Message:",
-          value: `${client.snipes.get(interaction.channelId).content}`,
-        })
-        .setColor(colors.info)
-        .setTimestamp(client.snipes.get(interaction.channelId).timestamp);
+        },
+        thumbnail: {
+          url: "https://media.tenor.com/images/14333b6252db0853a2c1331405e765c4/tenor.gif",
+        },
+        fields: [
+          {
+            name: "",
+            value: !image
+              ? `${client.snipes.get(interaction.channelId).content}`
+              : "",
+          },
+        ],
+        image: {
+          url: image
+            ? `${client.snipes.get(interaction.channelId).content}`
+            : "",
+        },
+        timestamp: client.snipes.get(interaction.channelId).timestamp,
+      };
       await interaction.reply({ embeds: [embed] });
     } catch (error) {
       await interaction.reply({
