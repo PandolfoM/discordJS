@@ -8,7 +8,8 @@ module.exports = {
     const img = message.attachments.values().next().value;
 
     const snipeData = {
-      content: img ? img.url : message.content,
+      content: message.content ? message.content : "",
+      img: img ? img.url : "",
       author: message.author,
       timestamp: message.createdAt,
     };
