@@ -8,6 +8,7 @@ module.exports = {
     .setDescription("Snipe last deleted message")
     .setDMPermission(false),
   async execute(interaction, client) {
+    await interaction.deferReply();
     try {
       const snipeContent = client.snipes.get(interaction.channelId).content;
       const snipeImg = client.snipes.get(interaction.channelId).img;
@@ -40,7 +41,7 @@ module.exports = {
           snipeImg.includes(".mov")
         ) {
           const videoAttachment = new AttachmentBuilder(snipeImg);
-          await interaction.deferReply();
+
           return await interaction.editReply({
             embeds: [embed],
             files: [videoAttachment],
@@ -50,11 +51,15 @@ module.exports = {
         embed.setImage(snipeImg);
       }
 
-      await interaction.reply({ embeds: [embed] });
+      await interaction.editReply({ embeds: [embed] });
     } catch (error) {
-      await interaction.reply({
-        content: "No message to snipe",
-        ephemeral: true,
+      await interaction.editReply({
+        embeds: [
+          {
+            color: colors.error,
+            title: "No message to snipe",
+          },
+        ],
       });
     }
   },
