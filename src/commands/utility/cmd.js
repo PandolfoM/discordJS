@@ -22,7 +22,7 @@ module.exports = {
   async execute(interaction) {
     if (interaction.options.getSubcommand() === "gitpull") {
       await interaction.deferReply({ ephemeral: true });
-      exec("git pull", async (error, stdout, stderr) => {
+      exec("../gitpull_expect.sh", async (error, stdout, stderr) => {
         if (error) {
           await interaction.editReply({
             embeds: [errorEmbed],
@@ -52,7 +52,7 @@ module.exports = {
 
     if (interaction.options.getSubcommand() === "pm2") {
       await interaction.deferReply({ ephemeral: true });
-      exec(`../su_expect_script.sh`, async (error, stdout, stderr) => {
+      exec(`../pm2_expect.sh`, async (error, stdout, stderr) => {
         if (error) {
           await interaction.editReply({
             embeds: [errorEmbed],
