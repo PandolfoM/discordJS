@@ -21,6 +21,8 @@ module.exports = {
     .setDMPermission(false),
   async execute(interaction) {
     if (interaction.options.getSubcommand() === "gitpull") {
+      const currentDirectory = process.cwd();
+      console.log(currentDirectory);
       await interaction.deferReply({ ephemeral: true });
       exec("../gitpull_expect.sh", async (error, stdout, stderr) => {
         if (error) {
@@ -69,14 +71,25 @@ module.exports = {
           return;
         }
 
-        await interaction.editReply({
-          embeds: [
-            {
-              color: colors.info,
-              title: "Successfully restarted",
-            },
-          ],
-        });
+        // Assuming there is a specific success message in stdout
+        const successMessage = "Ready!";
+
+        if (stdout.includes(successMessage)) {
+          await interaction.editReply({
+            embeds: [
+              {
+                color: colors.info,
+                title: "Successfully restarted",
+              },
+            ],
+          });
+        } else {
+          // If the success message is not found in stdout, handle it as an error
+          await interaction.editReply({
+            embeds: [errorEmbed],
+          });
+          logger("Unexpected output. Expected success message not found.");
+        }
       });
     }
   },
