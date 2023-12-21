@@ -29,18 +29,26 @@ async function sendDM(userid, item, price, image, url, drop) {
 
 async function webscrape() {
   (async () => {
-    const browser = await chromium.launch();
+    const browser = await chromium.launch({ headless: true });
     const context = await browser.newContext();
     const qUrls = await getUrls();
 
     try {
       for (const urlArr of qUrls) {
         const page = await context.newPage();
-        await page.goto(urlArr.url);
-        const titleElement = await page.$("#productTitle");
-        const priceElement = await page.$(".a-price-whole");
-        const imageElement = await page.$("#landingImage");
-        const priceFractionElement = await page.$(".a-price-fraction");
+
+        try {
+          await page.goto(urlArr.url, { waitUntil: "load", timeout: 5000 });
+        } catch (error) {
+          logger("Error duting navigation");
+          console.error(error);
+        }
+        const titleElement = await page.waitForSelector("#productTitle");
+        const priceElement = await page.waitForSelector(".a-price-whole");
+        const imageElement = await page.waitForSelector("#landingImage");
+        const priceFractionElement = await page.waitForSelector(
+          ".a-price-fraction"
+        );
         if (
           !titleElement ||
           !priceElement ||
