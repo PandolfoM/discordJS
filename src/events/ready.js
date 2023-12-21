@@ -56,7 +56,7 @@ module.exports = {
       });
     });
     switchPresence();
-    webscrape();
+    setTimeout(webscrape, 30 * 60 * 1000);
     console.log(`Ready! Logged in as ${client.user.tag}`);
   },
 };

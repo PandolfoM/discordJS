@@ -28,6 +28,7 @@ async function sendDM(userid, item, price, image, url, drop) {
 }
 
 async function webscrape() {
+  console.log("webscrape");
   (async () => {
     const browser = await chromium.launch({ headless: true });
     const context = await browser.newContext();
@@ -38,9 +39,9 @@ async function webscrape() {
         const page = await context.newPage();
 
         try {
-          await page.goto(urlArr.url, { waitUntil: "load", timeout: 5000 });
+          await page.goto(urlArr.url, { waitUntil: "load", timeout: 10000 });
         } catch (error) {
-          logger("Error duting navigation");
+          logger("Error during navigation");
           console.error(error);
         }
         const titleElement = await page.waitForSelector("#productTitle");
