@@ -33,13 +33,9 @@ module.exports = {
 
         if (stderr) {
           await interaction.editReply({
-            embeds: [
-              {
-                color: colors.error,
-                title: stderr,
-              },
-            ],
+            embeds: [errorEmbed],
           });
+          logger(stderr);
           return;
         }
 
@@ -67,15 +63,20 @@ module.exports = {
 
         if (stderr) {
           await interaction.editReply({
-            embeds: [
-              {
-                color: colors.error,
-                title: stderr,
-              },
-            ],
+            embeds: [errorEmbed],
           });
+          logger(stderr);
           return;
         }
+
+        await interaction.editReply({
+          embeds: [
+            {
+              color: colors.info,
+              title: "Successfully restarted",
+            },
+          ],
+        });
       });
     }
   },
