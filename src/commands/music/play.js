@@ -25,7 +25,8 @@ module.exports = {
     .setDescription("Jammies")
     .addStringOption((option) =>
       option.setName("url").setRequired(true).setDescription("Link")
-    ),
+    )
+    .setDMPermission(false),
   async execute(interaction, client) {
     const url = interaction.options.getString("url");
     const guildid = interaction.guild.id;
@@ -41,7 +42,7 @@ module.exports = {
 
     client.player.set(guildid, player);
 
-    if (await hasDJ(interaction)) {
+    if (await hasDJ(interaction, client)) {
       if (channel) {
         try {
           const connection = await joinVoiceChannel({
@@ -66,12 +67,17 @@ module.exports = {
               ]);
               // Seems to be reconnecting to a new channel - ignore disconnect
             } catch (error) {
-              // Seems to be a real disconnect which SHOULDN'T be recovered from
-              connection.destroy();
-              client.musicQueue.set(guildid, {
-                playing: false,
-                queue: [],
-              });
+              try {
+                // Seems to be a real disconnect which SHOULDN'T be recovered from
+                connection.destroy();
+                client.player.get(interaction.guild.id).stop();
+                client.musicQueue.set(guildid, {
+                  playing: false,
+                  queue: [],
+                });
+              } catch (e) {
+                logger(e);
+              }
             }
           });
 

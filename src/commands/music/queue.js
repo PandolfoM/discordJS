@@ -5,12 +5,13 @@ const { hasDJ } = require("../../utils/musicUtils");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("queue")
-    .setDescription("Show music queue"),
+    .setDescription("Show music queue")
+    .setDMPermission(false),
   async execute(interaction, client) {
     const channel = interaction.member?.voice.channel;
     const guildid = interaction.guild.id;
 
-    if (await hasDJ(interaction)) {
+    if (await hasDJ(interaction, client)) {
       if (channel) {
         if (client.musicQueue.get(guildid)) {
           try {

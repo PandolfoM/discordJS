@@ -7,12 +7,13 @@ const logger = require("../../utils/logger");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("stop")
-    .setDescription("Stop playing music"),
+    .setDescription("Stop playing music")
+    .setDMPermission(false),
   async execute(interaction, client) {
     const channel = interaction.member?.voice.channel;
     const guildid = interaction.guild.id;
 
-    if (await hasDJ(interaction)) {
+    if (await hasDJ(interaction, client)) {
       if (channel) {
         try {
           if (client.musicQueue.get(guildid) === undefined) {

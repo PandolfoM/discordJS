@@ -9,6 +9,7 @@ const client = new Client({
     GatewayIntentBits.DirectMessageReactions,
     GatewayIntentBits.DirectMessageTyping,
     GatewayIntentBits.GuildVoiceStates,
+    GatewayIntentBits.GuildEmojisAndStickers,
   ],
 });
 
@@ -18,6 +19,7 @@ client.commands = new Collection();
 client.snipes = new Collection();
 client.player = new Collection();
 client.musicQueue = new Collection();
+client.settings = new Collection();
 
 require("dotenv").config();
 

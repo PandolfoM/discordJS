@@ -1,4 +1,8 @@
-const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
+const {
+  SlashCommandBuilder,
+  EmbedBuilder,
+  PermissionFlagsBits,
+} = require("discord.js");
 const { errorEmbed } = require("../../config/embeds");
 const colors = require("../../config/colors");
 
@@ -11,7 +15,9 @@ module.exports = {
         .setName("amount")
         .setDescription("Number of messages to delete")
         .setRequired(true)
-    ),
+    )
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+    .setDMPermission(false),
   async execute(interaction) {
     const amount = interaction.options.getInteger("amount");
 

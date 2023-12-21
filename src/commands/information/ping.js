@@ -11,7 +11,8 @@ const embed = new EmbedBuilder()
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("ping")
-    .setDescription("Replies with Pong!"),
+    .setDescription("Replies with Pong!")
+    .setDMPermission(false),
   async execute(interaction) {
     await interaction.reply({ embeds: [embed] });
     const message = await interaction.fetchReply();

@@ -1,5 +1,7 @@
 const { ActivityType } = require("discord.js");
 const webscrape = require("../functions/webscraper");
+const { query, collection, onSnapshot } = require("firebase/firestore");
+const db = require("../firebaseConfig");
 
 module.exports = {
   name: "ready",
@@ -47,8 +49,14 @@ module.exports = {
       setTimeout(switchPresence, 60 * 1000);
     }
 
+    const q = query(collection(db, "settings"));
+    onSnapshot(q, (querySnapshot) => {
+      querySnapshot.forEach((doc) => {
+        client.settings.set(doc.id, doc.data());
+      });
+    });
     switchPresence();
-    webscrape();
+    setTimeout(webscrape, 30 * 60 * 1000);
     console.log(`Ready! Logged in as ${client.user.tag}`);
   },
 };

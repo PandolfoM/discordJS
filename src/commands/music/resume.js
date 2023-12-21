@@ -6,12 +6,13 @@ const { errorEmbed } = require("../../config/embeds");
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("resume")
-    .setDescription("Resume the paused track"),
+    .setDescription("Resume the paused track")
+    .setDMPermission(false),
   async execute(interaction, client) {
     const channel = interaction.member?.voice.channel;
     const guildid = interaction.guild.id;
 
-    if (await hasDJ(interaction)) {
+    if (await hasDJ(interaction, client)) {
       if (channel) {
         try {
           client.player.get(guildid).unpause();
