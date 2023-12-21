@@ -20,6 +20,8 @@ module.exports = {
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
     .setDMPermission(false),
   async execute(interaction) {
+    const currentDir = process.cwd();
+    console.log(currentDir);
     if (interaction.options.getSubcommand() === "gitpull") {
       await interaction.deferReply({ ephemeral: true });
       exec("git pull", async (error, stdout, stderr) => {
