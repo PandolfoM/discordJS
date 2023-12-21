@@ -21,10 +21,8 @@ module.exports = {
     .setDMPermission(false),
   async execute(interaction) {
     if (interaction.options.getSubcommand() === "gitpull") {
-      const currentDirectory = process.cwd();
-      console.log(currentDirectory);
       await interaction.deferReply({ ephemeral: true });
-      exec("../gitpull_expect.sh", async (error, stdout, stderr) => {
+      exec("git pull", async (error, stdout, stderr) => {
         if (error) {
           await interaction.editReply({
             embeds: [errorEmbed],
@@ -45,7 +43,7 @@ module.exports = {
           embeds: [
             {
               color: colors.info,
-              title: "Pull Success",
+              title: stdout,
             },
           ],
         });
@@ -53,10 +51,9 @@ module.exports = {
     }
 
     if (interaction.options.getSubcommand() === "pm2") {
-      await interaction.deferReply({ ephemeral: true });
       exec(`../pm2_expect.sh`, async (error, stdout, stderr) => {
         if (error) {
-          await interaction.editReply({
+          await interaction.reply({
             embeds: [errorEmbed],
           });
           logger(error.message);
@@ -64,31 +61,11 @@ module.exports = {
         }
 
         if (stderr) {
-          await interaction.editReply({
+          await interaction.reply({
             embeds: [errorEmbed],
           });
           logger(stderr);
           return;
-        }
-
-        // Assuming there is a specific success message in stdout
-        const successMessage = "Ready!";
-
-        if (stdout.includes(successMessage)) {
-          await interaction.editReply({
-            embeds: [
-              {
-                color: colors.info,
-                title: "Successfully restarted",
-              },
-            ],
-          });
-        } else {
-          // If the success message is not found in stdout, handle it as an error
-          await interaction.editReply({
-            embeds: [errorEmbed],
-          });
-          logger("Unexpected output. Expected success message not found.");
         }
       });
     }

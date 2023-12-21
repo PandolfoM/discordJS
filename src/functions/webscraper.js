@@ -36,13 +36,7 @@ async function webscrape() {
     try {
       for (const urlArr of qUrls) {
         const page = await context.newPage();
-
-        try {
-          await page.goto(urlArr.url, { waitUntil: "load", timeout: 10000 });
-        } catch (error) {
-          logger("Error during navigation");
-          console.error(error);
-        }
+        await page.goto(urlArr.url, { waitUntil: "load", timeout: 10000 });
         const titleElement = await page.waitForSelector("#productTitle");
         const priceElement = await page.waitForSelector(".a-price-whole");
         const imageElement = await page.waitForSelector("#landingImage");
