@@ -56,30 +56,27 @@ module.exports = {
 
     if (interaction.options.getSubcommand() === "pm2") {
       await interaction.deferReply({ ephemeral: true });
-      exec(
-        `./su_expect_script.sh ${process.env.PASSWORD}`,
-        async (error, stdout, stderr) => {
-          if (error) {
-            await interaction.editReply({
-              embeds: [errorEmbed],
-            });
-            logger(error.message);
-            return;
-          }
-
-          if (stderr) {
-            await interaction.editReply({
-              embeds: [
-                {
-                  color: colors.error,
-                  title: stderr,
-                },
-              ],
-            });
-            return;
-          }
+      exec(`./su_expect_script.sh`, async (error, stdout, stderr) => {
+        if (error) {
+          await interaction.editReply({
+            embeds: [errorEmbed],
+          });
+          logger(error.message);
+          return;
         }
-      );
+
+        if (stderr) {
+          await interaction.editReply({
+            embeds: [
+              {
+                color: colors.error,
+                title: stderr,
+              },
+            ],
+          });
+          return;
+        }
+      });
     }
   },
 };
