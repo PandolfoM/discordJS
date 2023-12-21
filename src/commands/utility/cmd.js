@@ -20,8 +20,6 @@ module.exports = {
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
     .setDMPermission(false),
   async execute(interaction) {
-    const currentDir = process.cwd();
-    console.log(currentDir);
     if (interaction.options.getSubcommand() === "gitpull") {
       await interaction.deferReply({ ephemeral: true });
       exec("git pull", async (error, stdout, stderr) => {
@@ -49,7 +47,7 @@ module.exports = {
           embeds: [
             {
               color: colors.info,
-              title: stdout,
+              title: "Pull Success",
             },
           ],
         });
@@ -58,7 +56,7 @@ module.exports = {
 
     if (interaction.options.getSubcommand() === "pm2") {
       await interaction.deferReply({ ephemeral: true });
-      exec(`./su_expect_script.sh`, async (error, stdout, stderr) => {
+      exec(`../su_expect_script.sh`, async (error, stdout, stderr) => {
         if (error) {
           await interaction.editReply({
             embeds: [errorEmbed],
