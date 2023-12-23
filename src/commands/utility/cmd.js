@@ -39,14 +39,25 @@ module.exports = {
           return;
         }
 
-        await interaction.editReply({
-          embeds: [
-            {
-              color: colors.info,
-              title: stdout,
-            },
-          ],
-        });
+        if (stdout.includes("Already up to date")) {
+          await interaction.editReply({
+            embeds: [
+              {
+                color: colors.info,
+                title: "Already up to date",
+              },
+            ],
+          });
+        } else {
+          await interaction.editReply({
+            embeds: [
+              {
+                color: colors.info,
+                title: "Pull Successful",
+              },
+            ],
+          });
+        }
       });
     }
 
