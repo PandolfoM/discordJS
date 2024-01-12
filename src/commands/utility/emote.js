@@ -19,7 +19,7 @@ module.exports = {
             .setRequired(true)
         )
     )
-    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
+    .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
     .setDMPermission(false),
   async execute(interaction) {
     if (interaction.options.getSubcommand() === "steal") {
