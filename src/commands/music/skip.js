@@ -33,6 +33,11 @@ module.exports = {
             playing: false,
             queue: [],
           });
+
+          await interaction.reply({
+            color: colors.info,
+            title: "Disconnected",
+          });
         }
       } else {
         await interaction.reply({
