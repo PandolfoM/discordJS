@@ -128,9 +128,6 @@ module.exports = {
 
       if (interaction.options.getString("branch") === "develop") {
         exec(`../gitdevelop_expect.sh`, async (error, stdout, stderr) => {
-          console.log(error);
-          console.log(stdout);
-          console.log(stderr);
           if (error) {
             await interaction.reply({
               embeds: [errorEmbed],
