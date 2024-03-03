@@ -1,6 +1,6 @@
 const { SlashCommandBuilder } = require("discord.js");
 const { playNextTrack, hasDJ } = require("../../utils/musicUtils");
-const { createAudioPlayer } = require("@discordjs/voice");
+const { createAudioPlayer, getVoiceConnection } = require("@discordjs/voice");
 const colors = require("../../config/colors");
 const { noDjEmbed, errorEmbed } = require("../../config/embeds");
 const logger = require("../../utils/logger");
@@ -25,13 +25,13 @@ module.exports = {
             await interaction.reply({ embeds: [errorEmbed] });
           }
         } else {
-          await interaction.reply({
-            embeds: [
-              {
-                color: colors.error,
-                title: "There are no tracks in the queue",
-              },
-            ],
+          const connection = getVoiceConnection(guildid);
+          connection.destroy();
+          client.player.get(guildid).stop();
+
+          client.musicQueue.set(guildid, {
+            playing: false,
+            queue: [],
           });
         }
       } else {
