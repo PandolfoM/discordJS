@@ -17,7 +17,8 @@ module.exports = {
 
     if (await hasDJ(interaction, client)) {
       if (channel) {
-        if (client.musicQueue.get(guildid)) {
+        if (client.musicQueue.get(guildid).queue.length > 1) {
+          console.log("music q");
           try {
             playNextTrack(guildid, client, interaction, player);
           } catch (error) {
@@ -35,8 +36,12 @@ module.exports = {
           });
 
           await interaction.reply({
-            color: colors.info,
-            title: "Disconnected",
+            embeds: [
+              {
+                color: colors.info,
+                title: "No music left in queue",
+              },
+            ],
           });
         }
       } else {
