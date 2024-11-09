@@ -56,7 +56,7 @@ module.exports = {
               },
             },
           ],
-          ephemeral: true,
+          // ephemeral: true,
         });
       } catch (error) {
         logger(error);
