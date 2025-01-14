@@ -124,6 +124,30 @@ async function playNextTrack(guildId, client, interaction, player) {
   }
 }
 
+async function stopPlayer(guildId, client, interaction, player) {
+  const connection = getVoiceConnection(guildId);
+  if (!connection) {
+    await interaction.reply({
+      embeds: [
+        {
+          color: colors.error,
+          title: "I am not in a voice channel",
+        },
+      ],
+    });
+    return;
+  }
+
+  player.stop();
+  connection.destroy();
+
+  // Reset the queue and playing state
+  client.musicQueue.set(guildId, {
+    playing: false,
+    queue: [],
+  });
+}
+
 async function hasDJ(interaction, client) {
   const allowedChannelIds = [
     client.settings.get(interaction.guild.id).devChannel,
@@ -188,4 +212,5 @@ module.exports = {
   playTrack,
   playNextTrack,
   hasDJ,
+  stopPlayer,
 };
