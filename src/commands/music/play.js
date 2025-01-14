@@ -4,7 +4,8 @@ const {
   VoiceConnectionStatus,
   entersState,
 } = require("@discordjs/voice");
-const play = require("play-dl");
+// const play = require("play-dl"); //! this is broken uncomment when fix is released
+const play = require("../../playdl-patch/dist/index"); // https://github.com/YuzuZensai/play-dl-test
 const { SlashCommandBuilder } = require("discord.js");
 const colors = require("../../config/colors");
 const {

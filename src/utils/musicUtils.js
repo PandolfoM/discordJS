@@ -1,7 +1,9 @@
 const { createAudioResource, getVoiceConnection } = require("@discordjs/voice");
 const colors = require("../config/colors");
 const { EmbedBuilder } = require("discord.js");
-const play = require("play-dl");
+// const play = require("play-dl"); //! this is broken uncomment when fix is released
+const play = require("../playdl-patch/dist/index"); // https://github.com/YuzuZensai/play-dl-test
+
 const { errorEmbed, noDjEmbed } = require("../config/embeds");
 
 async function enqueue(queue, title, url, interaction, client) {
