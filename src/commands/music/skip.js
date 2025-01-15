@@ -23,11 +23,7 @@ module.exports = {
 
     if (await hasDJ(interaction, client)) {
       if (channel) {
-        console.log("channel");
-
-        if (queue > 0) {
-          console.log("queue", queue);
-
+        if (queue.queue.length > 0) {
           try {
             playNextTrack(guildid, client, interaction, player);
           } catch (error) {
