@@ -1,7 +1,9 @@
 const { createAudioResource, getVoiceConnection } = require("@discordjs/voice");
 const colors = require("../config/colors");
 const { EmbedBuilder } = require("discord.js");
-const play = require("play-dl");
+// const play = require("play-dl"); //! this is broken uncomment when fix is released
+const play = require("../playdl-patch/dist/index"); // https://github.com/YuzuZensai/play-dl-test
+
 const { errorEmbed, noDjEmbed } = require("../config/embeds");
 
 async function enqueue(queue, title, url, interaction, client) {
@@ -122,6 +124,30 @@ async function playNextTrack(guildId, client, interaction, player) {
   }
 }
 
+async function stopPlayer(guildId, client, interaction, player) {
+  const connection = getVoiceConnection(guildId);
+  if (!connection) {
+    await interaction.reply({
+      embeds: [
+        {
+          color: colors.error,
+          title: "I am not in a voice channel",
+        },
+      ],
+    });
+    return;
+  }
+
+  player.stop();
+  connection.destroy();
+
+  // Reset the queue and playing state
+  client.musicQueue.set(guildId, {
+    playing: false,
+    queue: [],
+  });
+}
+
 async function hasDJ(interaction, client) {
   const allowedChannelIds = [
     client.settings.get(interaction.guild.id).devChannel,
@@ -186,4 +212,5 @@ module.exports = {
   playTrack,
   playNextTrack,
   hasDJ,
+  stopPlayer,
 };

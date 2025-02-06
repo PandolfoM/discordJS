@@ -56,7 +56,7 @@ module.exports = {
               },
             },
           ],
-          ephemeral: true,
+          // ephemeral: true,
         });
       } catch (error) {
         logger(error);
@@ -75,11 +75,20 @@ async function getEmoteData(id) {
     const res = await axios.get("https://7tv.io/v3/emotes/" + id);
     if (res) {
       let emote = "";
+      const files = res.data.versions[0].host.files;
 
       if (res.data.animated) {
-        emote = `https://cdn.7tv.app/emote/${id}/4x.gif`;
+        const gifData = files.filter((item) => {
+          return item.format === "GIF" && item.size < 262144;
+        });
+
+        emote = `https://cdn.7tv.app/emote/${id}/${gifData[gifData.length - 1].name}`;
       } else {
-        emote = `https://cdn.7tv.app/emote/${id}/4x.png`;
+        const pngData = files.filter((item) => {
+          return item.format === "PNG" && item.size < 262144;
+        });
+
+        emote = `https://cdn.7tv.app/emote/${id}/${pngData[pngData.length - 1].name}`;
       }
 
       return {

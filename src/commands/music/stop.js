@@ -1,7 +1,6 @@
-const { getVoiceConnection } = require("@discordjs/voice");
 const { SlashCommandBuilder } = require("discord.js");
 const colors = require("../../config/colors");
-const { hasDJ } = require("../../utils/musicUtils");
+const { hasDJ, stopPlayer } = require("../../utils/musicUtils");
 const logger = require("../../utils/logger");
 
 module.exports = {
@@ -24,15 +23,7 @@ module.exports = {
             });
           }
 
-          const connection = getVoiceConnection(guildid);
-
-          connection.destroy();
-          client.player.get(guildid).stop();
-
-          client.musicQueue.set(guildid, {
-            playing: false,
-            queue: [],
-          });
+          stopPlayer(guildid, client, interaction, client.player.get(guildid));
 
           await interaction.reply({
             embeds: [{ color: colors.info, title: "Bot disconnected" }],
