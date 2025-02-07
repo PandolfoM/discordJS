@@ -174,10 +174,6 @@ client.distube.on("empty", async (queue) => {
 });
 
 client.distube.on("error", async (error, channel) => {
-  console.log("====================================");
-  console.log(error);
-  console.log("====================================");
-
   const channelId = client.channels.cache.get(channel.textChannel.id);
   await channelId.send({
     embeds: [
