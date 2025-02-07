@@ -21,6 +21,7 @@ client.snipes = new Collection();
 client.player = new Collection();
 client.musicQueue = new Collection();
 client.settings = new Collection();
+require("./distube/index");
 
 require("dotenv").config();
 
