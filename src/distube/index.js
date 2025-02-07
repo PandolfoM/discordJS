@@ -1,7 +1,7 @@
 const { DisTube } = require("distube");
 const { client } = require("../bot");
 const { EmbedBuilder } = require("discord.js");
-// const { SpotifyPlugin } = require("@distube/spotify");
+const { SpotifyPlugin } = require("@distube/spotify");
 // const { SoundCloudPlugin } = require("@distube/soundcloud");
 const { YouTubePlugin } = require("@distube/youtube");
 // const { AppleMusicPlugin } = require("distube-apple-music");
@@ -14,21 +14,25 @@ const Format = Intl.NumberFormat();
 client.distube = new DisTube(client, {
   ffmpeg: {
     path: ffmpegPath,
+    args: ["-loglevel", "debug"],
   },
   nsfw: true,
   emitNewSongOnly: true,
   emitAddSongWhenCreatingQueue: true,
   emitAddListWhenCreatingQueue: true,
   plugins: [
-    // new SpotifyPlugin({
-    //   api: {
-    //     clientId: process.env.SPOTIFTYCLIENTID,
-    //     clientSecret: process.env.SPOTIFTYCLIENTSECRET,
-    //     topTracksCountry: "US",
-    //   },
-    // }),
-    // new SoundCloudPlugin(),
     new YouTubePlugin(),
+    new SpotifyPlugin({
+      api: {
+        clientId: process.env.SPOTIFTYCLIENTID,
+        clientSecret: process.env.SPOTIFTYCLIENTSECRET,
+        topTracksCountry: "US",
+      },
+    }),
+    // new SoundCloudPlugin({
+    //   clientId: "YHtBnq6bxM7DhJkIfzrGq3gYrueyLDMM",
+    //   oauthToken: "2-298185-348416357-ctOyOPf3yk10Yd",
+    // }),
     // new AppleMusicPlugin(),
   ],
 });
@@ -54,17 +58,17 @@ client.distube.on("addSong", async (queue, song) => {
           {
             name: "⏱️ Time",
             value: `${song.formattedDuration}`,
-            inline: true,
+            inline: false,
           },
           {
             name: "🎵 By",
-            value: `[${song.uploader.name}](${song.uploader.url})`,
-            inline: true,
+            value: `[${song.uploader.name}](${song.uploader.url ?? song.url})`,
+            inline: false,
           },
           {
             name: "👌 Request by",
             value: `${song.user}`,
-            inline: true,
+            inline: false,
           },
         ])
         .setImage(song.thumbnail)
@@ -89,12 +93,12 @@ client.distube.on("addList", async (queue, playlist) => {
           {
             name: "⏱️ | Time",
             value: `${playlist.formattedDuration}`,
-            inline: true,
+            inline: false,
           },
           {
             name: "👌 | Request by",
             value: `${playlist.user}`,
-            inline: true,
+            inline: false,
           },
         ])
         .setImage(playlist.thumbnail)
@@ -121,25 +125,25 @@ client.distube.on("playSong", async (queue, song) => {
             value: `${status(queue).toString()}`,
             inline: false,
           },
-          {
-            name: "👀 | Views",
-            value: `${Format.format(song.views)}`,
-            inline: true,
-          },
-          {
-            name: "👍 | Likes",
-            value: `${Format.format(song.likes)}`,
-            inline: true,
-          },
+          // {
+          //   name: "👀 | Views",
+          //   value: `${Format.format(song.views)}`,
+          //   inline: true,
+          // },
+          // {
+          //   name: "👍 | Likes",
+          //   value: `${Format.format(song.likes)}`,
+          //   inline: true,
+          // },
           {
             name: "⏱️ | Time",
             value: `${song.formattedDuration}`,
-            inline: true,
+            inline: false,
           },
           {
             name: "👌 | Request by",
             value: `${song.user}`,
-            inline: true,
+            inline: false,
           },
           {
             name: "📻 | Play music at",
