@@ -1,44 +1,53 @@
+const { EmbedBuilder } = require("discord.js");
 const { SlashCommandBuilder } = require("discord.js");
 const colors = require("../../config/colors");
-const { hasDJ } = require("../../utils/musicUtils");
-const { errorEmbed } = require("../../config/embeds");
 
 module.exports = {
+  category: "Music",
   data: new SlashCommandBuilder()
     .setName("pause")
-    .setDescription("Pause the current track")
-    .setDMPermission(false),
+    .setDescription("Pause the current track"),
+
   async execute(interaction, client) {
-    const channel = interaction.member?.voice.channel;
-    const guildid = interaction.guild.id;
-
-    if (await hasDJ(interaction, client)) {
-      if (channel) {
-        try {
-          client.player.get(guildid).pause();
-
-          client.musicQueue.set(interaction.guild.id, {
-            playing: false,
-            queue: client.musicQueue.get(interaction.guild.id).queue,
-          });
-
-          await interaction.reply({
-            embeds: [{ color: colors.info, title: "Paused track" }],
-          });
-        } catch (error) {
-          console.error(error);
-          await interaction.reply({ embeds: [errorEmbed] });
-        }
-      } else {
-        await interaction.reply({
-          embeds: [
-            {
-              color: colors.error,
-              title: "Join a voice channel and try again",
-            },
-          ],
-        });
-      }
+    const voiceChannel = interaction.member.voice.channel;
+    const queue = await client.distube.getQueue(interaction);
+    if (!voiceChannel) {
+      return interaction.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setColor(colors.error)
+            .setDescription(
+              `🚫 | You must be in a voice channel to use this command!`
+            ),
+        ],
+      });
     }
+    if (
+      interaction.guild.members.me.voice.channelId !==
+      interaction.member.voice.channelId
+    ) {
+      return interaction.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setColor(colors.error)
+            .setDescription(
+              `🚫 | You need to be on the same voice channel as the Bot!`
+            ),
+        ],
+      });
+    }
+
+    queue.pause();
+    await interaction.reply({
+      embeds: [
+        new EmbedBuilder()
+          .setColor(colors.info)
+          .setAuthor({
+            name: "Pause",
+            iconURL: client.user.displayAvatarURL(),
+          })
+          .setDescription(`⏸️ | Paused current song!`),
+      ],
+    });
   },
 };
