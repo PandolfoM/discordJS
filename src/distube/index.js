@@ -4,9 +4,9 @@ const { EmbedBuilder } = require("discord.js");
 const { SpotifyPlugin } = require("@distube/spotify");
 const { SoundCloudPlugin } = require("@distube/soundcloud");
 const { YouTubePlugin } = require("@distube/youtube");
+const { AppleMusicPlugin } = require("distube-apple-music");
 const colors = require("../config/colors");
 const ffmpegPath = require("ffmpeg-static");
-const { default: AppleMusicPlugin } = require("distube-apple-music");
 require("dotenv").config();
 
 const Format = Intl.NumberFormat();
@@ -47,7 +47,6 @@ client.distube.on("addSong", async (queue, song) => {
         .setColor(colors.info)
         .setAuthor({
           name: "Added song to queue",
-          iconURL: client.user.avatarURL(),
         })
         .setDescription(`> [**${song.name}**](${song.url})`)
         // .setThumbnail(song.user.displayAvatarURL())
@@ -83,7 +82,6 @@ client.distube.on("addList", async (queue, playlist) => {
         .setColor(colors.info)
         .setAuthor({
           name: "Add playlist to queue",
-          iconURL: client.user.avatarURL(),
         })
         // .setThumbnail(playlist.user.displayAvatarURL())
         .setDescription(`> [**${playlist.name}**](${playlist.url})`)
@@ -114,7 +112,6 @@ client.distube.on("playSong", async (queue, song) => {
         .setColor(colors.success)
         .setAuthor({
           name: "Now playing",
-          iconURL: client.user.avatarURL(),
         })
         .setDescription(`> [**${song.name}**](${song.url})`)
         // .setThumbnail(song.user.displayAvatarURL())
