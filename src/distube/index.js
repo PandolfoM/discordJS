@@ -1,7 +1,7 @@
 const { DisTube } = require("distube");
 const { client } = require("../bot");
 const { EmbedBuilder } = require("discord.js");
-const { SpotifyPlugin } = require("@distube/spotify");
+// const { SpotifyPlugin } = require("@distube/spotify");
 // const { SoundCloudPlugin } = require("@distube/soundcloud");
 const { YouTubePlugin } = require("@distube/youtube");
 // const { AppleMusicPlugin } = require("distube-apple-music");
