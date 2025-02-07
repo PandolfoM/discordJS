@@ -11,6 +11,7 @@ module.exports = {
   async execute(interaction, client) {
     const voiceChannel = interaction.member.voice.channel;
     const queue = await client.distube.getQueue(interaction);
+
     if (!voiceChannel) {
       return interaction.reply({
         embeds: [
