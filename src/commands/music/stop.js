@@ -37,6 +37,17 @@ module.exports = {
       });
     }
 
+    if (!queue) {
+      return interaction.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setColor(colors.error)
+            .setDescription(`🚫 | There is nothing playing!`),
+        ],
+        ephemeral: true,
+      });
+    }
+
     queue.stop();
     client.distube.voices.leave(interaction);
     interaction.reply({
