@@ -22,8 +22,8 @@ client.distube = new DisTube(client, {
   plugins: [
     new SpotifyPlugin({
       api: {
-        clientId: "6f78b6984d954443b29033c50c2524d0",
-        clientSecret: "4e1f154690ad4bc085708742f10999f1",
+        clientId: process.env.SPOTIFTYCLIENTID,
+        clientSecret: process.env.SPOTIFTYCLIENTSECRET,
         topTracksCountry: "US",
       },
     }),
