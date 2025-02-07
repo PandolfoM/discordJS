@@ -1,6 +1,7 @@
 const { EmbedBuilder } = require("discord.js");
 const { SlashCommandBuilder } = require("@discordjs/builders");
 const colors = require("../../config/colors");
+const { hasDJ } = require("../../utils/musicUtils");
 
 module.exports = {
   category: "Music",
@@ -51,27 +52,29 @@ module.exports = {
       }
     }
 
-    await interaction.reply({
-      embeds: [
-        new EmbedBuilder()
-          .setColor(colors.info)
-          .setDescription(`🔍 | Looking for song...`),
-      ],
-      ephemeral: true,
-    });
+    if (await hasDJ(interaction, client)) {
+      await interaction.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setColor(colors.info)
+            .setDescription(`🔍 | Looking for song...`),
+        ],
+        ephemeral: true,
+      });
 
-    client.distube.play(voiceChannel, keyword, {
-      textChannel: interaction.channel,
-      member: interaction.member,
-    });
+      client.distube.play(voiceChannel, keyword, {
+        textChannel: interaction.channel,
+        member: interaction.member,
+      });
 
-    await interaction.editReply({
-      embeds: [
-        new EmbedBuilder()
-          .setColor(colors.success)
-          .setDescription(`🔍 | Successful search!`),
-      ],
-      ephemeral: true,
-    });
+      await interaction.editReply({
+        embeds: [
+          new EmbedBuilder()
+            .setColor(colors.success)
+            .setDescription(`🔍 | Successful search!`),
+        ],
+        ephemeral: true,
+      });
+    }
   },
 };

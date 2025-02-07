@@ -46,11 +46,11 @@ client.distube.on("addSong", async (queue, song) => {
       new EmbedBuilder()
         .setColor(colors.info)
         .setAuthor({
-          name: "Add song to queue",
+          name: "Added song to queue",
           iconURL: client.user.avatarURL(),
         })
         .setDescription(`> [**${song.name}**](${song.url})`)
-        .setThumbnail(song.user.displayAvatarURL())
+        // .setThumbnail(song.user.displayAvatarURL())
         .addFields([
           {
             name: "⏱️ Time",
@@ -85,7 +85,7 @@ client.distube.on("addList", async (queue, playlist) => {
           name: "Add playlist to queue",
           iconURL: client.user.avatarURL(),
         })
-        .setThumbnail(playlist.user.displayAvatarURL())
+        // .setThumbnail(playlist.user.displayAvatarURL())
         .setDescription(`> [**${playlist.name}**](${playlist.url})`)
         .addFields([
           {
@@ -108,7 +108,6 @@ client.distube.on("addList", async (queue, playlist) => {
 });
 
 client.distube.on("playSong", async (queue, song) => {
-  queue.setVolume(20);
   await queue.textChannel.send({
     embeds: [
       new EmbedBuilder()
@@ -201,6 +200,7 @@ client.distube.on("disconnect", async (queue) => {
 });
 
 client.distube.on("finish", async (queue) => {
+  queue.stop();
   await queue.textChannel.send({
     embeds: [
       new EmbedBuilder()
@@ -211,8 +211,8 @@ client.distube.on("finish", async (queue) => {
 });
 
 client.distube.on("initQueue", async (queue) => {
-  queue.autoplay = true;
-  queue.volume = 100;
+  queue.autoplay = false;
+  queue.volume = 20;
 });
 
 client.distube.on("noRelated", async (queue) => {
@@ -222,5 +222,6 @@ client.distube.on("noRelated", async (queue) => {
         .setColor(colors.error)
         .setDescription(`🚫 | Song not found!`),
     ],
+    ephemeral: true,
   });
 });
