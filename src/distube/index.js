@@ -2,9 +2,9 @@ const { DisTube } = require("distube");
 const { client } = require("../bot");
 const { EmbedBuilder } = require("discord.js");
 const { SpotifyPlugin } = require("@distube/spotify");
-const { SoundCloudPlugin } = require("@distube/soundcloud");
+// const { SoundCloudPlugin } = require("@distube/soundcloud");
 const { YouTubePlugin } = require("@distube/youtube");
-const { AppleMusicPlugin } = require("distube-apple-music");
+// const { AppleMusicPlugin } = require("distube-apple-music");
 const colors = require("../config/colors");
 const ffmpegPath = require("ffmpeg-static");
 require("dotenv").config();
@@ -20,16 +20,16 @@ client.distube = new DisTube(client, {
   emitAddSongWhenCreatingQueue: true,
   emitAddListWhenCreatingQueue: true,
   plugins: [
-    new SpotifyPlugin({
-      api: {
-        clientId: process.env.SPOTIFTYCLIENTID,
-        clientSecret: process.env.SPOTIFTYCLIENTSECRET,
-        topTracksCountry: "US",
-      },
-    }),
-    new SoundCloudPlugin(),
+    // new SpotifyPlugin({
+    //   api: {
+    //     clientId: process.env.SPOTIFTYCLIENTID,
+    //     clientSecret: process.env.SPOTIFTYCLIENTSECRET,
+    //     topTracksCountry: "US",
+    //   },
+    // }),
+    // new SoundCloudPlugin(),
     new YouTubePlugin(),
-    new AppleMusicPlugin(),
+    // new AppleMusicPlugin(),
   ],
 });
 
