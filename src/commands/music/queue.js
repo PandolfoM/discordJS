@@ -1,64 +1,93 @@
-const { SlashCommandBuilder } = require("discord.js");
+const { EmbedBuilder, SlashCommandBuilder } = require("discord.js");
 const colors = require("../../config/colors");
-const { hasDJ } = require("../../utils/musicUtils");
 
 module.exports = {
+  category: "Music",
   data: new SlashCommandBuilder()
     .setName("queue")
-    .setDescription("Show music queue")
-    .setDMPermission(false),
+    .setDescription("See the list of songs in the queue!"),
+
   async execute(interaction, client) {
-    const channel = interaction.member?.voice.channel;
-    const guildid = interaction.guild.id;
-
-    if (await hasDJ(interaction, client)) {
-      if (channel) {
-        if (client.musicQueue.get(guildid)) {
-          try {
-            const queue = client.musicQueue.get(guildid).queue;
-
-            if (queue.length > 0) {
-              const mappedFieldsPromise = queue.map(async (i, index) => ({
-                name: " ",
-                value: `[${index + 1}] [${i.title}](${i.url})`,
-              }));
-
-              const mappedFields = await Promise.all(mappedFieldsPromise);
-
-              await interaction.reply({
-                embeds: [
-                  {
-                    color: colors.info,
-                    title: "Music Queue",
-                    fields: mappedFields,
-                  },
-                ],
-              });
-            }
-          } catch (error) {
-            console.error(error);
-            await interaction.reply("There has been an error!");
-          }
-        } else {
-          await interaction.reply({
-            embeds: [
-              {
-                color: colors.error,
-                title: "No music in the queue",
-              },
-            ],
-          });
-        }
-      } else {
-        await interaction.reply({
-          embeds: [
-            {
-              color: colors.error,
-              title: "Join a voice channel and try again",
-            },
-          ],
-        });
-      }
+    const voiceChannel = interaction.member.voice.channel;
+    const queue = await client.distube.getQueue(interaction);
+    if (!voiceChannel) {
+      return interaction.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setColor(colors.error)
+            .setDescription(
+              `🚫 | You must be in a voice channel to use this command!`
+            ),
+        ],
+      });
     }
+
+    if (
+      interaction.guild.members.me.voice.channelId !==
+      interaction.member.voice.channelId
+    ) {
+      return interaction.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setColor(colors.error)
+            .setDescription(
+              `🚫 | You need to be on the same voice channel as the Bot!`
+            ),
+        ],
+      });
+    }
+
+    if (!queue) {
+      return await interaction.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setColor(colors.error)
+            .setDescription(`🚫 | There are no songs in the queue!`),
+        ],
+        ephemeral: true,
+      });
+    }
+
+    const tracks = queue.songs.map(
+      (song, i) => `**${i + 1}** - [${song.name}](${song.url}) | ${
+        song.formattedDuration
+      }
+        Request by: ${song.user}`
+    );
+
+    const songs = queue.songs.length;
+    const nextSongs =
+      songs > 10
+        ? `And **${songs - 10}** more song${songs > 1 ? "s" : ""}...`
+        : `Playlist **${songs}** song${songs > 1 ? "s" : ""}...`;
+
+    interaction.reply({
+      embeds: [
+        new EmbedBuilder()
+          .setColor(colors.info)
+          .setAuthor({
+            name: "Queue",
+            iconURL: client.user.displayAvatarURL(),
+          })
+          .setDescription(`${tracks.slice(0, 10).join("\n")}\n\n${nextSongs}`)
+          .addFields([
+            {
+              name: "> Playing:",
+              value: `[${queue.songs[0].name}](${queue.songs[0].url}) - ${queue.songs[0].formattedDuration} | Request by: ${queue.songs[0].user}`,
+              inline: true,
+            },
+            {
+              name: "> Total times:",
+              value: `${queue.formattedDuration}`,
+              inline: true,
+            },
+            {
+              name: "> Total songs:",
+              value: `${songs}`,
+              inline: true,
+            },
+          ]),
+      ],
+    });
   },
 };
