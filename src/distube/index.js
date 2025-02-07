@@ -4,7 +4,7 @@ const { EmbedBuilder } = require("discord.js");
 const { SpotifyPlugin } = require("@distube/spotify");
 // const { SoundCloudPlugin } = require("@distube/soundcloud");
 const { YouTubePlugin } = require("@distube/youtube");
-// const { AppleMusicPlugin } = require("distube-apple-music");
+const { AppleMusicPlugin } = require("distube-apple-music");
 const colors = require("../config/colors");
 const ffmpegPath = require("ffmpeg-static");
 require("dotenv").config();
@@ -33,7 +33,7 @@ client.distube = new DisTube(client, {
     //   clientId: "YHtBnq6bxM7DhJkIfzrGq3gYrueyLDMM",
     //   oauthToken: "2-298185-348416357-ctOyOPf3yk10Yd",
     // }),
-    // new AppleMusicPlugin(),
+    new AppleMusicPlugin(),
   ],
 });
 
@@ -53,16 +53,11 @@ client.distube.on("addSong", async (queue, song) => {
           name: "Added song to queue",
         })
         .setDescription(`> [**${song.name}**](${song.url})`)
-        // .setThumbnail(song.user.displayAvatarURL())
+        .setThumbnail(song.thumbnail)
         .addFields([
           {
-            name: "⏱️ Time",
-            value: `${song.formattedDuration}`,
-            inline: false,
-          },
-          {
             name: "🎵 By",
-            value: `[${song.uploader.name}](${song.uploader.url ?? song.url})`,
+            value: song.uploader.name,
             inline: false,
           },
           {
@@ -71,7 +66,6 @@ client.distube.on("addSong", async (queue, song) => {
             inline: false,
           },
         ])
-        .setImage(song.thumbnail)
         .setFooter({
           text: `${Format.format(queue.songs.length)} songs in queue`,
         }),
@@ -87,21 +81,15 @@ client.distube.on("addList", async (queue, playlist) => {
         .setAuthor({
           name: "Add playlist to queue",
         })
-        // .setThumbnail(playlist.user.displayAvatarURL())
+        .setThumbnail(playlist.thumbnail)
         .setDescription(`> [**${playlist.name}**](${playlist.url})`)
         .addFields([
-          {
-            name: "⏱️ | Time",
-            value: `${playlist.formattedDuration}`,
-            inline: false,
-          },
           {
             name: "👌 | Request by",
             value: `${playlist.user}`,
             inline: false,
           },
         ])
-        .setImage(playlist.thumbnail)
         .setFooter({
           text: `${Format.format(queue.songs.length)} songs in queue`,
         }),
@@ -118,26 +106,11 @@ client.distube.on("playSong", async (queue, song) => {
           name: "Now playing",
         })
         .setDescription(`> [**${song.name}**](${song.url})`)
-        // .setThumbnail(song.user.displayAvatarURL())
+        .setThumbnail(song.thumbnail)
         .addFields([
           {
             name: "🔷 | Status",
             value: `${status(queue).toString()}`,
-            inline: false,
-          },
-          // {
-          //   name: "👀 | Views",
-          //   value: `${Format.format(song.views)}`,
-          //   inline: true,
-          // },
-          // {
-          //   name: "👍 | Likes",
-          //   value: `${Format.format(song.likes)}`,
-          //   inline: true,
-          // },
-          {
-            name: "⏱️ | Time",
-            value: `${song.formattedDuration}`,
             inline: false,
           },
           {
@@ -145,15 +118,14 @@ client.distube.on("playSong", async (queue, song) => {
             value: `${song.user}`,
             inline: false,
           },
-          {
-            name: "📻 | Play music at",
-            value: `
-┕🔊 | ${client.channels.cache.get(queue.voiceChannel.id)}
-┕🪄 | ${queue.voiceChannel.bitrate / 1000}  kbps`,
-            inline: false,
-          },
+          //           {
+          //             name: "📻 | Play music at",
+          //             value: `
+          // ┕🔊 | ${client.channels.cache.get(queue.voiceChannel.id)}
+          // ┕🪄 | ${queue.voiceChannel.bitrate / 1000}  kbps`,
+          //             inline: false,
+          //           },
         ])
-        .setImage(song.thumbnail)
         .setFooter({
           text: `${Format.format(queue.songs.length)} songs in queue`,
         }),
