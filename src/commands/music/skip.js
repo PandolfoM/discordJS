@@ -1,60 +1,58 @@
-const { SlashCommandBuilder } = require("discord.js");
-const {
-  playNextTrack,
-  hasDJ,
-  getGuildQueue,
-  stopPlayer,
-} = require("../../utils/musicUtils");
-const { createAudioPlayer } = require("@discordjs/voice");
+const { EmbedBuilder, SlashCommandBuilder } = require("discord.js");
 const colors = require("../../config/colors");
-const { noDjEmbed, errorEmbed } = require("../../config/embeds");
-const logger = require("../../utils/logger");
 
 module.exports = {
-  data: new SlashCommandBuilder()
-    .setName("skip")
-    .setDescription("Skip to the next track")
-    .setDMPermission(false),
+  category: "Music",
+  data: new SlashCommandBuilder().setName("skip").setDescription("Skip track"),
+
   async execute(interaction, client) {
-    const channel = interaction.member?.voice.channel;
-    const guildid = interaction.guild.id;
-    const player = createAudioPlayer();
-    const queue = getGuildQueue(guildid, client);
+    const voiceChannel = interaction.member.voice.channel;
+    const queue = await client.distube.getQueue(interaction);
+    if (!voiceChannel) {
+      return interaction.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setColor(colors.error)
+            .setDescription(
+              `🚫 | You must be in a voice channel to use this command!`
+            ),
+        ],
+      });
+    }
+    if (
+      interaction.guild.members.me.voice.channelId !==
+      interaction.member.voice.channelId
+    ) {
+      return interaction.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setColor(colors.error)
+            .setDescription(
+              `🚫 | You need to be on the same voice channel as the Bot!`
+            ),
+        ],
+      });
+    }
 
-    if (await hasDJ(interaction, client)) {
-      if (channel) {
-        if (queue.queue.length > 0) {
-          try {
-            playNextTrack(guildid, client, interaction, player);
-          } catch (error) {
-            logger(error);
-            await interaction.reply({ embeds: [errorEmbed] });
-          }
-        } else {
-          stopPlayer(guildid, client, interaction, player);
-
-          await interaction.reply({
-            embeds: [
-              {
-                color: colors.error,
-                title: "There are no tracks left in the queue",
-              },
-            ],
-          });
-        }
-      } else {
-        await interaction.reply({
-          embeds: [
-            {
-              color: colors.error,
-              title: "Join a voice channel and try again",
-            },
-          ],
-        });
-      }
-    } else {
+    if (queue.songs.length === 1) {
+      queue.stop();
+      client.distube.voices.leave(interaction);
       await interaction.reply({
-        embeds: [noDjEmbed],
+        embeds: [
+          new EmbedBuilder()
+            .setColor(colors.error)
+            .setDescription(`🚫 | There are no more songs in the queue!`),
+        ],
+      });
+      return;
+    } else {
+      queue.skip();
+      await interaction.reply({
+        embeds: [
+          new EmbedBuilder()
+            .setColor(colors.info)
+            .setDescription(`⏩ | Skipped!`),
+        ],
       });
     }
   },

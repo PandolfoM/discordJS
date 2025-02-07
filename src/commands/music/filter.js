@@ -11,7 +11,7 @@ module.exports = {
       option
         .setName("type")
         .setDescription("Select filter type")
-        // .setRequired(true)
+        .setRequired(true)
         .setAutocomplete(true)
     ),
 
