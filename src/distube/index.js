@@ -108,7 +108,7 @@ client.distube.on("addList", async (queue, playlist) => {
 });
 
 client.distube.on("playSong", async (queue, song) => {
-  queue.setVolume(50);
+  queue.setVolume(25);
   await queue.textChannel.send({
     embeds: [
       new EmbedBuilder()
