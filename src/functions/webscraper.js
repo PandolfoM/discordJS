@@ -29,7 +29,7 @@ async function sendDM(userid, item, price, image, url, drop) {
 
 async function webscrape() {
   (async () => {
-    const browser = await chromium.launch({ headless: true });
+    const browser = await chromium.launch({});
     const context = await browser.newContext();
     const qUrls = await getUrls();
 
@@ -38,11 +38,22 @@ async function webscrape() {
         const page = await context.newPage();
         await page.goto(urlArr.url, { waitUntil: "load", timeout: 10000 });
         const titleElement = await page.waitForSelector("#productTitle");
-        const priceElement = await page.waitForSelector(".a-price-whole");
+        const priceElement = await page
+          .waitForSelector(".priceToPay>.a-price-whole", {})
+          .catch(() => {
+            console.log("unavailable: ", urlArr.url);
+            previousPrices[urlArr.url] = null;
+          });
+
+        if (!priceElement) {
+          continue;
+        }
+
         const imageElement = await page.waitForSelector("#landingImage");
         const priceFractionElement = await page.waitForSelector(
           ".a-price-fraction"
         );
+
         if (
           !titleElement ||
           !priceElement ||
