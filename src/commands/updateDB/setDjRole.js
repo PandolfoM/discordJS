@@ -19,7 +19,7 @@ module.exports = {
     await updateGuildSetting(
       interaction,
       "djRole",
-      role?.id ?? "0",
+      role?.id ?? null,
       role ? `DJ role set to ${role}` : "DJ role removed",
     );
   },

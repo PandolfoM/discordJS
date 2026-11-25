@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, MessageFlags } = require("discord.js");
-const { addItem } = require("../../utils/firebaseUtils");
+const { addItem } = require("../../db/watchlist");
 const { isAmazonUrl } = require("../../utils/amazon");
 const webscrapeItem = require("../../functions/webscrapeItem");
 const { errorEmbed } = require("../../config/embeds");
@@ -42,7 +42,7 @@ module.exports = {
         });
       }
 
-      await addItem(interaction.user.id, { url, name });
+      addItem(interaction.user.id, { url, name });
       await interaction.editReply({
         embeds: [{ color: colors.success, title: `Added: ${name}`.slice(0, 256) }],
       });

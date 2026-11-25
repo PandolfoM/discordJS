@@ -23,7 +23,7 @@ module.exports = {
     await updateGuildSetting(
       interaction,
       "devChannel",
-      channel?.id ?? "0",
+      channel?.id ?? null,
       channel ? `Dev channel set to ${channel}` : "Dev channel removed",
     );
   },

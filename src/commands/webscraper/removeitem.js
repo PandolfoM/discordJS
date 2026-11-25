@@ -1,5 +1,5 @@
 const { SlashCommandBuilder, MessageFlags } = require("discord.js");
-const { removeUrl } = require("../../utils/firebaseUtils");
+const { removeUrl } = require("../../db/watchlist");
 const { isAmazonUrl } = require("../../utils/amazon");
 
 module.exports = {
@@ -16,7 +16,7 @@ module.exports = {
       return interaction.reply({ content: "Not a valid url", flags: MessageFlags.Ephemeral });
     }
 
-    const removed = await removeUrl(interaction.user.id, url);
+    const removed = removeUrl(interaction.user.id, url);
     await interaction.reply({
       content: removed ? `Removed: ${url}` : "That URL isn't in your watch list",
       flags: MessageFlags.Ephemeral,

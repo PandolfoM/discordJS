@@ -1,6 +1,4 @@
 const { ActivityType, Events } = require("discord.js");
-const { collection, onSnapshot } = require("firebase/firestore");
-const db = require("../firebaseConfig");
 const { startWebscraper } = require("../functions/webscraper");
 
 const PRESENCE_INTERVAL_MS = 60 * 1000;
@@ -21,20 +19,6 @@ module.exports = {
     };
     setRandomPresence();
     setInterval(setRandomPresence, PRESENCE_INTERVAL_MS);
-
-    onSnapshot(
-      collection(db, "settings"),
-      (snapshot) => {
-        for (const change of snapshot.docChanges()) {
-          if (change.type === "removed") {
-            client.settings.delete(change.doc.id);
-          } else {
-            client.settings.set(change.doc.id, change.doc.data());
-          }
-        }
-      },
-      (error) => console.error("Settings listener error:", error),
-    );
 
     startWebscraper(client);
     console.log(`Ready! Logged in as ${client.user.tag}`);

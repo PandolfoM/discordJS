@@ -6,7 +6,7 @@ const {
   ComponentType,
   MessageFlags,
 } = require("discord.js");
-const { getItems, removeItemNumber } = require("../../utils/firebaseUtils");
+const { getItems, removeItem } = require("../../db/watchlist");
 const colors = require("../../config/colors");
 const urlShortener = require("../../utils/urlShortener");
 
@@ -29,7 +29,7 @@ module.exports = {
     .setDescription("List of all items that you are watching"),
   async execute(interaction) {
     const userId = interaction.user.id;
-    const items = (await getItems(userId)).slice(0, MAX_ITEMS);
+    const items = getItems(userId).slice(0, MAX_ITEMS);
 
     if (!items.length) {
       return interaction.reply({
@@ -53,9 +53,10 @@ module.exports = {
     for (let i = 0; i < items.length; i += BUTTONS_PER_ROW) {
       rows.push(
         new ActionRowBuilder().addComponents(
-          items.slice(i, i + BUTTONS_PER_ROW).map((_, offset) =>
+          items.slice(i, i + BUTTONS_PER_ROW).map((item, offset) =>
             new ButtonBuilder()
-              .setCustomId(`${BUTTON_PREFIX}${i + offset}`)
+              // Row id, not position, so removal is right even if the list changed.
+              .setCustomId(`${BUTTON_PREFIX}${item.id}`)
               .setLabel(`${i + offset + 1}`)
               .setStyle(ButtonStyle.Danger),
           ),
@@ -82,8 +83,11 @@ module.exports = {
       });
     }
 
-    const index = Number(click.customId.slice(BUTTON_PREFIX.length));
-    const result = await removeItemNumber(userId, index);
-    await click.update({ embeds: [scraperEmbed(result)], components: [] });
+    const itemId = Number(click.customId.slice(BUTTON_PREFIX.length));
+    const removedName = removeItem(userId, itemId);
+    await click.update({
+      embeds: [scraperEmbed(removedName ? `Removed: ${removedName}` : "That item no longer exists.")],
+      components: [],
+    });
   },
 };

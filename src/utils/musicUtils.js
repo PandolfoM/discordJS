@@ -1,6 +1,7 @@
 const { MessageFlags } = require("discord.js");
 const colors = require("../config/colors");
 const { noDjEmbed, statusEmbed } = require("../config/embeds");
+const { getGuildSettings } = require("../db/guildSettings");
 
 const replyError = (interaction, description) =>
   interaction.reply({
@@ -35,16 +36,11 @@ async function ensureVoice(interaction, client, { requireQueue = true } = {}) {
 }
 
 /** Checks music channel + DJ role settings. Replies and returns false if denied. */
-async function hasDJ(interaction, client) {
-  const {
-    devChannel = "0",
-    musicChannel = "0",
-    djRole = "0",
-  } = client.settings.get(interaction.guildId) ?? {};
+async function hasDJ(interaction) {
+  const { devChannel, musicChannel, djRole } = getGuildSettings(interaction.guildId);
 
   const inAllowedChannel =
-    musicChannel === "0" ||
-    [devChannel, musicChannel].includes(interaction.channelId);
+    !musicChannel || [devChannel, musicChannel].includes(interaction.channelId);
 
   if (!inAllowedChannel) {
     await interaction.reply({
@@ -54,7 +50,7 @@ async function hasDJ(interaction, client) {
     return false;
   }
 
-  if (djRole === "0" || interaction.member.roles.cache.has(djRole)) {
+  if (!djRole || interaction.member.roles.cache.has(djRole)) {
     return true;
   }
 

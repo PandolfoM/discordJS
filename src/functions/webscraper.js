@@ -2,7 +2,7 @@ const { chromium } = require("playwright");
 const { EmbedBuilder } = require("discord.js");
 const colors = require("../config/colors");
 const urlShortener = require("../utils/urlShortener");
-const { getUrls } = require("../utils/firebaseUtils");
+const { getAllWatchedItems } = require("../db/watchlist");
 const logger = require("../utils/logger");
 
 const INITIAL_DELAY_MS = 60 * 1000;
@@ -76,11 +76,11 @@ async function webscrape(client) {
   try {
     // Group watchers by URL so each product page is scraped once per run.
     const watchers = new Map();
-    for (const { id, url } of await getUrls()) {
+    for (const { userId, url } of getAllWatchedItems()) {
       if (!watchers.has(url)) {
         watchers.set(url, new Set());
       }
-      watchers.get(url).add(id);
+      watchers.get(url).add(userId);
     }
 
     for (const url of previousPrices.keys()) {

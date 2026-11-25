@@ -18,7 +18,7 @@ module.exports = {
 
   async execute(interaction, client) {
     const voice = await ensureVoice(interaction, client, { requireQueue: false });
-    if (!voice || !(await hasDJ(interaction, client))) {
+    if (!voice || !(await hasDJ(interaction))) {
       return;
     }
 
