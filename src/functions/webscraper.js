@@ -1,93 +1,134 @@
 const { chromium } = require("playwright");
-const { client } = require("../bot");
 const { EmbedBuilder } = require("discord.js");
 const colors = require("../config/colors");
 const urlShortener = require("../utils/urlShortener");
 const { getUrls } = require("../utils/firebaseUtils");
 const logger = require("../utils/logger");
 
-const previousPrices = {};
+const INITIAL_DELAY_MS = 60 * 1000;
+const INTERVAL_MS = 30 * 60 * 1000;
 
-async function sendDM(userid, item, price, image, url, drop) {
+/** Last seen price per URL (null = unavailable). */
+const previousPrices = new Map();
+let running = false;
+
+const digits = (text) => (text ?? "").replace(/\D/g, "");
+
+async function scrapeProduct(page, url) {
+  await page.goto(url, { waitUntil: "load", timeout: 30_000 });
+  const title = await page
+    .locator("#productTitle")
+    .first()
+    .textContent({ timeout: 10_000 });
+
+  const priceBlock = page.locator(".priceToPay").first();
+  if (!(await priceBlock.count())) {
+    return { title: title.trim(), price: null };
+  }
+
+  const whole = await priceBlock.locator(".a-price-whole").first().textContent();
+  const fraction = await priceBlock
+    .locator(".a-price-fraction")
+    .first()
+    .textContent();
+  const image = await page
+    .locator("#landingImage")
+    .first()
+    .getAttribute("src", { timeout: 5_000 })
+    .catch(() => null);
+
+  const price = parseFloat(`${digits(whole)}.${digits(fraction) || "0"}`);
+  return { title: title.trim(), price: Number.isNaN(price) ? null : price, image };
+}
+
+async function sendPriceAlerts(client, userIds, { title, price, image, url, drop }) {
+  const embed = new EmbedBuilder()
+    .setColor(drop ? colors.success : colors.error)
+    .setTitle(drop ? "Price Drop!" : "Price Increase :(")
+    .addFields(
+      { name: "Item", value: title },
+      { name: "Price", value: `$${price.toFixed(2)}`, inline: true },
+      { name: "Link", value: await urlShortener(url), inline: true },
+    );
+  if (image) {
+    embed.setImage(image);
+  }
+
+  await Promise.all(
+    [...userIds].map(async (userId) => {
+      try {
+        const user = await client.users.fetch(userId);
+        await user.send({ embeds: [embed] });
+      } catch (error) {
+        logger(error);
+      }
+    }),
+  );
+}
+
+async function webscrape(client) {
+  if (running) {
+    return;
+  }
+  running = true;
+  let browser;
+
   try {
-    const user = await client.users.fetch(userid);
-    const shortUrl = await urlShortener(url);
-    const embed = new EmbedBuilder()
-      .setColor(drop ? colors.success : colors.error)
-      .setTitle(drop ? "Price Drop!" : "Price Increase :(")
-      .addFields(
-        { name: "Item", value: `${item}` },
-        { name: "Price", value: `$${price}`, inline: true },
-        { name: "Link", value: `${shortUrl}`, inline: true }
-      )
-      .setImage(`${image}`);
-    user.send({ embeds: [embed] });
+    // Group watchers by URL so each product page is scraped once per run.
+    const watchers = new Map();
+    for (const { id, url } of await getUrls()) {
+      if (!watchers.has(url)) {
+        watchers.set(url, new Set());
+      }
+      watchers.get(url).add(id);
+    }
+
+    for (const url of previousPrices.keys()) {
+      if (!watchers.has(url)) {
+        previousPrices.delete(url);
+      }
+    }
+    if (!watchers.size) {
+      return;
+    }
+
+    browser = await chromium.launch();
+    const page = await browser.newPage();
+
+    for (const [url, userIds] of watchers) {
+      try {
+        const { title, price, image } = await scrapeProduct(page, url);
+        const previous = previousPrices.get(url);
+        previousPrices.set(url, price);
+
+        if (price === null) {
+          console.log("Unavailable:", url);
+        } else if (previous != null && price !== previous) {
+          await sendPriceAlerts(client, userIds, {
+            title,
+            price,
+            image,
+            url,
+            drop: price < previous,
+          });
+        }
+      } catch (error) {
+        console.error(`Error while scraping ${url}:`, error.message);
+      }
+    }
   } catch (error) {
-    logger(error);
+    console.error("Webscraper run failed:", error);
+  } finally {
+    await browser?.close();
+    running = false;
   }
 }
 
-async function webscrape() {
-  (async () => {
-    const browser = await chromium.launch({});
-    const context = await browser.newContext();
-    const qUrls = await getUrls();
-
-    try {
-      for (const urlArr of qUrls) {
-        const page = await context.newPage();
-        await page.goto(urlArr.url, { waitUntil: "load", timeout: 10000 });
-        const titleElement = await page.waitForSelector("#productTitle");
-        const priceElement = await page
-          .waitForSelector(".priceToPay>.a-price-whole", {})
-          .catch(() => {
-            console.log("unavailable: ", urlArr.url);
-            previousPrices[urlArr.url] = null;
-          });
-
-        if (!priceElement) {
-          continue;
-        }
-
-        const imageElement = await page.waitForSelector("#landingImage");
-        const priceFractionElement = await page.waitForSelector(
-          ".a-price-fraction"
-        );
-
-        if (
-          !titleElement ||
-          !priceElement ||
-          !priceFractionElement ||
-          !imageElement
-        ) {
-          continue;
-        }
-        const title = await titleElement.textContent();
-        const wholePart = await priceElement.textContent();
-        const fractionPart = await priceFractionElement.textContent();
-        const image = await imageElement.getAttribute("src");
-        const price = parseFloat(
-          `${wholePart.replace(/,/g, "")}${fractionPart}`
-        );
-        if (previousPrices[urlArr.url] !== undefined) {
-          if (price < previousPrices[urlArr.url]) {
-            // Price has gone down
-            sendDM(urlArr.id, title.trim(), price, image, urlArr.url, true);
-          } else if (price > previousPrices[urlArr.url]) {
-            // Price has gone up
-            sendDM(urlArr.id, title.trim(), price, image, urlArr.url, false);
-          }
-        }
-        previousPrices[urlArr.url] = price;
-      }
-    } catch (error) {
-      console.error("Error while scraping:", error);
-    } finally {
-      await browser.close();
-    }
-  })();
+function startWebscraper(client) {
+  setTimeout(() => {
+    webscrape(client);
+    setInterval(() => webscrape(client), INTERVAL_MS);
+  }, INITIAL_DELAY_MS);
 }
 
-setInterval(webscrape, 1800 * 1000);
-
-module.exports = webscrape;
+module.exports = { webscrape, startWebscraper };

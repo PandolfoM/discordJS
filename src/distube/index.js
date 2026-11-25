@@ -1,21 +1,18 @@
 const { DisTube } = require("distube");
-const { client } = require("../bot");
 const { EmbedBuilder } = require("discord.js");
 const { SpotifyPlugin } = require("@distube/spotify");
-// const { SoundCloudPlugin } = require("@distube/soundcloud");
 const { YouTubePlugin } = require("@distube/youtube");
 const { AppleMusicPlugin } = require("distube-apple-music");
-const colors = require("../config/colors");
 const ffmpegPath = require("ffmpeg-static");
-require("dotenv").config();
+const { client } = require("../bot");
+const colors = require("../config/colors");
+const { statusEmbed } = require("../config/embeds");
 
-const Format = Intl.NumberFormat();
+const DEFAULT_VOLUME = 20;
+const formatNumber = new Intl.NumberFormat();
 
 client.distube = new DisTube(client, {
-  ffmpeg: {
-    path: ffmpegPath,
-    args: ["-loglevel", "debug"],
-  },
+  ffmpeg: { path: ffmpegPath },
   nsfw: true,
   emitNewSongOnly: true,
   emitAddSongWhenCreatingQueue: true,
@@ -29,12 +26,17 @@ client.distube = new DisTube(client, {
         topTracksCountry: "US",
       },
     }),
-    // new SoundCloudPlugin({
-    //   clientId: "YHtBnq6bxM7DhJkIfzrGq3gYrueyLDMM",
-    //   oauthToken: "2-298185-348416357-ctOyOPf3yk10Yd",
-    // }),
     new AppleMusicPlugin(),
   ],
+});
+
+const send = (queue, embed) =>
+  queue.textChannel?.send({ embeds: [embed] }).catch((error) => {
+    console.error("Failed to send DisTube message:", error);
+  });
+
+const queueFooter = (queue) => ({
+  text: `${formatNumber.format(queue.songs.length)} songs in queue`,
 });
 
 const status = (queue) =>
@@ -44,157 +46,71 @@ const status = (queue) =>
     queue.repeatMode ? (queue.repeatMode === 2 ? "Playlist" : "Song") : "Off"
   }\` | Autoplay: \`${queue.autoplay ? "On" : "Off"}\``;
 
-client.distube.on("addSong", async (queue, song) => {
-  await queue.textChannel.send({
-    embeds: [
+client.distube
+  .on("initQueue", (queue) => {
+    queue.autoplay = false;
+    queue.setVolume(DEFAULT_VOLUME);
+  })
+  .on("addSong", (queue, song) =>
+    send(
+      queue,
       new EmbedBuilder()
         .setColor(colors.info)
-        .setAuthor({
-          name: "Added song to queue",
-        })
+        .setAuthor({ name: "Added song to queue" })
         .setDescription(`> [**${song.name}**](${song.url})`)
-        .setThumbnail(song.thumbnail)
-        .addFields([
-          {
-            name: "🎵 By",
-            value: song.uploader.name,
-            inline: false,
-          },
-          {
-            name: "👌 Request by",
-            value: `${song.user}`,
-            inline: false,
-          },
-        ])
-        .setFooter({
-          text: `${Format.format(queue.songs.length)} songs in queue`,
-        }),
-    ],
-  });
-});
-
-client.distube.on("addList", async (queue, playlist) => {
-  await queue.textChannel.send({
-    embeds: [
+        .setThumbnail(song.thumbnail ?? null)
+        .addFields(
+          { name: "🎵 By", value: song.uploader?.name || "Unknown" },
+          { name: "👌 Request by", value: `${song.user}` },
+        )
+        .setFooter(queueFooter(queue)),
+    ),
+  )
+  .on("addList", (queue, playlist) =>
+    send(
+      queue,
       new EmbedBuilder()
         .setColor(colors.info)
-        .setAuthor({
-          name: "Add playlist to queue",
-        })
-        .setThumbnail(playlist.thumbnail)
+        .setAuthor({ name: "Add playlist to queue" })
+        .setThumbnail(playlist.thumbnail ?? null)
         .setDescription(`> [**${playlist.name}**](${playlist.url})`)
-        .addFields([
-          {
-            name: "👌 | Request by",
-            value: `${playlist.user}`,
-            inline: false,
-          },
-        ])
-        .setFooter({
-          text: `${Format.format(queue.songs.length)} songs in queue`,
-        }),
-    ],
-  });
-});
-
-client.distube.on("playSong", async (queue, song) => {
-  await queue.textChannel.send({
-    embeds: [
+        .addFields({ name: "👌 | Request by", value: `${playlist.user}` })
+        .setFooter(queueFooter(queue)),
+    ),
+  )
+  .on("playSong", (queue, song) =>
+    send(
+      queue,
       new EmbedBuilder()
         .setColor(colors.success)
-        .setAuthor({
-          name: "Now playing",
-        })
+        .setAuthor({ name: "Now playing" })
         .setDescription(`> [**${song.name}**](${song.url})`)
-        .setThumbnail(song.thumbnail)
-        .addFields([
-          {
-            name: "🔷 | Status",
-            value: `${status(queue).toString()}`,
-            inline: false,
-          },
-          {
-            name: "👌 | Request by",
-            value: `${song.user}`,
-            inline: false,
-          },
-          //           {
-          //             name: "📻 | Play music at",
-          //             value: `
-          // ┕🔊 | ${client.channels.cache.get(queue.voiceChannel.id)}
-          // ┕🪄 | ${queue.voiceChannel.bitrate / 1000}  kbps`,
-          //             inline: false,
-          //           },
-        ])
-        .setFooter({
-          text: `${Format.format(queue.songs.length)} songs in queue`,
-        }),
-    ],
-  });
-});
-
-client.distube.on("empty", async (queue) => {
-  await queue.textChannel.send({
-    embeds: [
-      new EmbedBuilder()
-        .setColor(colors.error)
-        .setDescription(
-          `🚫 | The room is empty, the bot automatically leaves the room!`
+        .setThumbnail(song.thumbnail ?? null)
+        .addFields(
+          { name: "🔷 | Status", value: status(queue) },
+          { name: "👌 | Request by", value: `${song.user}` },
+        )
+        .setFooter(queueFooter(queue)),
+    ),
+  )
+  .on("error", (error, queue) => {
+    console.error("DisTube error:", error);
+    if (queue) {
+      send(
+        queue,
+        statusEmbed(
+          colors.error,
+          `🚫 | An error has occurred!\n\n**${String(error).slice(0, 1974)}**`,
         ),
-    ],
-  });
-});
-
-client.distube.on("error", async (error, channel) => {
-  const channelId = client.channels.cache.get(channel.textChannel.id);
-  await channelId.send({
-    embeds: [
-      new EmbedBuilder()
-        .setColor(colors.error)
-        .setDescription(
-          `🚫 | An error has occurred!\n\n** ${error
-            .toString()
-            .slice(0, 1974)}**`
-        ),
-    ],
-  });
-});
-
-client.distube.on("disconnect", async (queue) => {
-  await queue.textChannel.send({
-    embeds: [
-      new EmbedBuilder()
-        .setColor(colors.error)
-        .setDescription(
-          `🚫 | The bot has disconnected from the voice channel!`
-        ),
-    ],
-  });
-});
-
-client.distube.on("finish", async (queue) => {
-  queue.stop();
-  await queue.textChannel.send({
-    embeds: [
-      new EmbedBuilder()
-        .setColor(colors.error)
-        .setDescription(`🚫 | All songs on the playlist have been played!`),
-    ],
-  });
-});
-
-client.distube.on("initQueue", async (queue) => {
-  queue.autoplay = false;
-  queue.volume = 20;
-});
-
-client.distube.on("noRelated", async (queue) => {
-  await queue.textChannel.send({
-    embeds: [
-      new EmbedBuilder()
-        .setColor(colors.error)
-        .setDescription(`🚫 | Song not found!`),
-    ],
-    ephemeral: true,
-  });
-});
+      );
+    }
+  })
+  .on("disconnect", (queue) =>
+    send(queue, statusEmbed(colors.error, "🚫 | The bot has disconnected from the voice channel!")),
+  )
+  .on("finish", (queue) =>
+    send(queue, statusEmbed(colors.error, "🚫 | All songs on the playlist have been played!")),
+  )
+  .on("noRelated", (queue) =>
+    send(queue, statusEmbed(colors.error, "🚫 | Song not found!")),
+  );

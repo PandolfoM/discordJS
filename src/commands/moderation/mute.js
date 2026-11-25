@@ -1,75 +1,77 @@
-const { SlashCommandBuilder } = require("@discordjs/builders");
-const { EmbedBuilder, PermissionFlagsBits } = require("discord.js");
-const dayjs = require("dayjs");
-const localizedFormat = require("dayjs/plugin/localizedFormat");
+const {
+  SlashCommandBuilder,
+  EmbedBuilder,
+  PermissionFlagsBits,
+  InteractionContextType,
+  MessageFlags,
+  time,
+  TimestampStyles,
+} = require("discord.js");
 const colors = require("../../config/colors");
-dayjs.extend(localizedFormat);
+const logger = require("../../utils/logger");
+
+const MAX_TIMEOUT_MINUTES = 28 * 24 * 60; // Discord's limit is 28 days
+
+const replyError = (interaction, title) =>
+  interaction.reply({
+    embeds: [{ color: colors.error, title }],
+    flags: MessageFlags.Ephemeral,
+  });
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("mute")
     .setDescription("Mutes member")
     .addUserOption((option) =>
-      option.setName("target").setRequired(true).setDescription("User to mute")
+      option.setName("target").setRequired(true).setDescription("User to mute"),
     )
-    .addStringOption((option) =>
+    .addIntegerOption((option) =>
       option
         .setName("duration")
         .setRequired(true)
-        .setDescription("How long to mute user (minutes)")
+        .setMinValue(1)
+        .setMaxValue(MAX_TIMEOUT_MINUTES)
+        .setDescription("How long to mute user (minutes)"),
     )
     .addStringOption((option) =>
-      option.setName("reason").setDescription("Reason for mute")
+      option.setName("reason").setDescription("Reason for mute"),
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.MuteMembers)
-    .setDMPermission(false),
+    .setContexts(InteractionContextType.Guild),
   async execute(interaction) {
-    const user = interaction.options.getUser("target");
-    const duration = Number(
-      interaction.options.getString("duration") * 60 * 1000
-    );
-    let reason = interaction.options.getString("reason");
-    const member = await interaction.guild.members.fetch(user.id);
+    const member = interaction.options.getMember("target");
+    const minutes = interaction.options.getInteger("duration");
+    const reason = interaction.options.getString("reason") ?? "No reason provided";
 
     if (!member) {
-      await interaction.reply({ content: "Invalid User", ephemeral: true });
+      return replyError(interaction, "Invalid User");
+    }
+    if (!member.moderatable) {
+      return replyError(interaction, "Not enough permission");
     }
 
-    if (!duration) {
-      await interaction.reply({
-        content: "No duration provided",
-        ephemeral: true,
-      });
-    }
-
-    if (!reason) {
-      reason = "No reason provided";
-    }
-
-    const muteEnd = dayjs(Date.now())
-      .add(duration / 60000, "m")
-      .format("LTS");
-    const embed = new EmbedBuilder()
-      .setTitle(`${user.tag} has been muted`)
-      .setThumbnail(user.avatarURL({ dynamic: true }))
-      .setColor(colors.info)
-      .addFields(
-        {
-          name: `Duration of timeout:`,
-          value: `${duration / 60000} Minute(s)`,
-        },
-        { name: "Mute until:", value: `${muteEnd}` }
-      )
-      .setTimestamp();
-
+    const duration = minutes * 60 * 1000;
     try {
       await member.timeout(duration, reason);
-      await interaction.reply({ embeds: [embed] });
     } catch (error) {
-      await interaction.channel.send({
-        embeds: [{ color: colors.error, title: "Not enough permission" }],
-        ephemeral: true,
-      });
+      logger(error);
+      return replyError(interaction, "Not enough permission");
     }
+
+    const muteEnd = Math.floor((Date.now() + duration) / 1000);
+    await interaction.reply({
+      embeds: [
+        new EmbedBuilder()
+          .setTitle(`${member.user.username} has been muted`)
+          .setThumbnail(member.displayAvatarURL())
+          .setColor(colors.info)
+          .addFields(
+            { name: "Duration of timeout:", value: `${minutes} Minute(s)` },
+            { name: "Mute until:", value: time(muteEnd, TimestampStyles.LongTime) },
+            { name: "Reason:", value: reason.slice(0, 1024) },
+          )
+          .setTimestamp(),
+      ],
+    });
   },
 };

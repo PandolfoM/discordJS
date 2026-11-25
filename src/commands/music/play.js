@@ -1,7 +1,7 @@
-const { EmbedBuilder } = require("discord.js");
-const { SlashCommandBuilder } = require("@discordjs/builders");
+const { SlashCommandBuilder, MessageFlags, InteractionContextType } = require("discord.js");
 const colors = require("../../config/colors");
-const { hasDJ } = require("../../utils/musicUtils");
+const { statusEmbed } = require("../../config/embeds");
+const { ensureVoice, hasDJ } = require("../../utils/musicUtils");
 
 module.exports = {
   category: "Music",
@@ -12,68 +12,32 @@ module.exports = {
       option
         .setName("song")
         .setDescription("The keyword or URL of the song to play")
-        .setRequired(true)
-    ),
+        .setRequired(true),
+    )
+    .setContexts(InteractionContextType.Guild),
 
   async execute(interaction, client) {
-    const keyword = interaction.options.getString("song");
-
-    const voiceChannel = interaction.member.voice.channel;
-    const queue = await client.distube.getQueue(interaction);
-
-    if (!voiceChannel) {
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.error)
-            .setDescription(
-              `🚫 | You must be in a voice channel to use this command!`
-            ),
-        ],
-        ephemeral: true,
-      });
+    const voice = await ensureVoice(interaction, client, { requireQueue: false });
+    if (!voice || !(await hasDJ(interaction, client))) {
+      return;
     }
 
-    if (queue) {
-      if (
-        interaction.guild.members.me.voice.channelId !==
-        interaction.member.voice.channelId
-      ) {
-        return interaction.reply({
-          embeds: [
-            new EmbedBuilder()
-              .setColor(colors.error)
-              .setDescription(
-                `🚫 | You need to be on the same voice channel as the Bot!`
-              ),
-          ],
-          ephemeral: true,
-        });
-      }
-    }
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
-    if (await hasDJ(interaction, client)) {
-      await interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.info)
-            .setDescription(`🔍 | Looking for song...`),
-        ],
-        ephemeral: true,
-      });
-
-      client.distube.play(voiceChannel, keyword, {
+    try {
+      await client.distube.play(voice.voiceChannel, interaction.options.getString("song"), {
         textChannel: interaction.channel,
         member: interaction.member,
       });
-
+      await interaction.editReply({
+        embeds: [statusEmbed(colors.success, "🔍 | Successful search!")],
+      });
+    } catch (error) {
+      console.error("Play error:", error);
       await interaction.editReply({
         embeds: [
-          new EmbedBuilder()
-            .setColor(colors.success)
-            .setDescription(`🔍 | Successful search!`),
+          statusEmbed(colors.error, `🚫 | Couldn't play that: ${String(error.message ?? error).slice(0, 1000)}`),
         ],
-        ephemeral: true,
       });
     }
   },

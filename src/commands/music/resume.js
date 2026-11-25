@@ -1,49 +1,30 @@
-const { EmbedBuilder, SlashCommandBuilder } = require("discord.js");
+const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require("discord.js");
 const colors = require("../../config/colors");
+const { ensureVoice, replyError } = require("../../utils/musicUtils");
 
 module.exports = {
   category: "Music",
-  data: new SlashCommandBuilder().setName("resume").setDescription("Resume!"),
+  data: new SlashCommandBuilder()
+    .setName("resume")
+    .setDescription("Resume!")
+    .setContexts(InteractionContextType.Guild),
 
   async execute(interaction, client) {
-    const voiceChannel = interaction.member.voice.channel;
-    const queue = await client.distube.getQueue(interaction);
-    if (!voiceChannel) {
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.error)
-            .setDescription(
-              `🚫 | You must be in a voice channel to use this command!`
-            ),
-        ],
-      });
+    const voice = await ensureVoice(interaction, client);
+    if (!voice) {
+      return;
     }
-    if (
-      interaction.guild.members.me.voice.channelId !==
-      interaction.member.voice.channelId
-    ) {
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.error)
-            .setDescription(
-              `🚫 | You need to be on the same voice channel as the Bot!`
-            ),
-        ],
-      });
+    if (!voice.queue.paused) {
+      return replyError(interaction, "The song is not paused!");
     }
 
-    queue.resume();
+    await voice.queue.resume();
     await interaction.reply({
       embeds: [
         new EmbedBuilder()
           .setColor(colors.info)
-          .setAuthor({
-            name: "Resume",
-            iconURL: client.user.displayAvatarURL(),
-          })
-          .setDescription(`⏯️ | Resume playing current song!`),
+          .setAuthor({ name: "Resume", iconURL: client.user.displayAvatarURL() })
+          .setDescription("⏯️ | Resume playing current song!"),
       ],
     });
   },

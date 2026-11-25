@@ -1,5 +1,4 @@
 const {
-  query,
   collection,
   getDocs,
   updateDoc,
@@ -9,136 +8,67 @@ const {
   setDoc,
 } = require("firebase/firestore");
 const db = require("../firebaseConfig");
-const webscrapeItem = require("../functions/webscrapeItem");
-const logger = require("./logger");
-const { errorEmbed } = require("../config/embeds");
-const colors = require("../config/colors");
 
+const watchDoc = (userId) => doc(db, "webscraper", userId);
+
+/** Every watched item across all users, as { id: userId, url }. */
 async function getUrls() {
   try {
-    const q = query(collection(db, "webscraper"));
-    const qSnapshot = await getDocs(q);
-    let data = [];
-
-    qSnapshot.forEach((i) => {
-      const docData = i.data();
-      data = docData.items.map((item) => ({
-        id: docData.id,
-        url: item.url,
-      }));
+    const snapshot = await getDocs(collection(db, "webscraper"));
+    return snapshot.docs.flatMap((userDoc) => {
+      const { id, items = [] } = userDoc.data();
+      return items.map((item) => ({ id: id ?? userDoc.id, url: item.url }));
     });
-
-    return data;
   } catch (error) {
+    console.error("Failed to load webscraper URLs:", error);
     return [];
   }
 }
 
-async function addItem(interaction, url, name) {
-  return (async () => {
-    try {
-      const ref = doc(db, "webscraper", interaction.user.id);
-      const docSnap = await getDoc(ref);
-
-      let itemToAdd;
-
-      if (name) {
-        itemToAdd = { url: url, name: name };
-      } else {
-        const itemName = await webscrapeItem(url);
-        if (itemName) {
-          itemToAdd = { url: url, name: itemName };
-        }
-      }
-
-      if (docSnap.exists() && itemToAdd) {
-        await updateDoc(ref, {
-          items: arrayUnion(itemToAdd),
-        });
-        return true;
-      } else if (itemToAdd) {
-        await setDoc(ref, {
-          id: interaction.user.id,
-          items: arrayUnion(itemToAdd),
-        });
-        return true;
-      } else {
-        await interaction.editReply({
-          embeds: [
-            {
-              color: colors.error,
-              title: "No item to add",
-            },
-          ],
-          ephemeral: true,
-        });
-        return false;
-      }
-    } catch (error) {
-      logger(error);
-      await interaction.editReply({
-        embeds: [errorEmbed],
-        ephemeral: true,
-      });
-    }
-  })();
+async function getItems(userId) {
+  const snap = await getDoc(watchDoc(userId));
+  return snap.exists() ? (snap.data().items ?? []) : [];
 }
 
-async function removeUrl(userid, url) {
-  try {
-    const snap = await getDoc(doc(db, "webscraper", userid));
-    if (snap.exists()) {
-      const newArr = snap.data().items.filter((i) => i.url !== url);
-      await updateDoc(doc(db, "webscraper", userid), {
-        items: newArr,
-      });
-    } else {
-      console.log("no items");
-    }
-  } catch (error) {
-    console.log(error);
-  }
+async function addItem(userId, item) {
+  await setDoc(
+    watchDoc(userId),
+    { id: userId, items: arrayUnion(item) },
+    { merge: true },
+  );
 }
 
-async function removeItemNumber(userid, index) {
-  try {
-    const snap = await getDoc(doc(db, "webscraper", userid));
-    if (snap.exists()) {
-      const data = snap.data().items;
-      if (index >= 0 && index < data.length) {
-        const removedItem = data.splice(index, 1)[0];
-        await updateDoc(doc(db, "webscraper", userid), {
-          items: data,
-        });
-        return `Removed: ${removedItem.name}`;
-      } else {
-        return "There has been an error!";
-      }
-    } else {
-      console.log("no items");
-    }
-  } catch (error) {
-    console.log(error);
+/** Removes every item with this URL. Returns true if anything was removed. */
+async function removeUrl(userId, url) {
+  const items = await getItems(userId);
+  const remaining = items.filter((item) => item.url !== url);
+  if (remaining.length === items.length) {
+    return false;
   }
+  await updateDoc(watchDoc(userId), { items: remaining });
+  return true;
 }
 
-async function getItemNames(userid) {
-  try {
-    const snap = await getDoc(doc(db, "webscraper", userid));
-    if (snap.exists()) {
-      return snap.data().items;
-    } else {
-      console.log("No items");
-    }
-  } catch (error) {
-    console.error(error);
+/** Removes the item at `index`. Returns a user-facing status message. */
+async function removeItemNumber(userId, index) {
+  const items = await getItems(userId);
+  if (index < 0 || index >= items.length) {
+    return "That item no longer exists.";
   }
+  const [removed] = items.splice(index, 1);
+  await updateDoc(watchDoc(userId), { items });
+  return `Removed: ${removed.name}`;
+}
+
+async function setGuildSetting(guildId, field, value) {
+  await setDoc(doc(db, "settings", guildId), { [field]: value }, { merge: true });
 }
 
 module.exports = {
   getUrls,
+  getItems,
   addItem,
   removeUrl,
   removeItemNumber,
-  getItemNames,
+  setGuildSetting,
 };

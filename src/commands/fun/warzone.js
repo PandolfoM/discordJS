@@ -1,12 +1,14 @@
-const { SlashCommandBuilder } = require("@discordjs/builders");
+const { SlashCommandBuilder } = require("discord.js");
+
+const EMOJI = "<a:YAPPP:1195413955317862411>";
+
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("warzone")
     .setDescription("Warzone YAPP"),
   async execute(interaction) {
-    const emoji = `<a:YAPPP:1195413955317862411>`;
     await interaction.reply(
-      `${emoji} word came down ${emoji} we are green to go ${emoji} so gear up and grab your shoots ${emoji} we're going to warzone ${emoji} rules of engagement are simple ${emoji} weapons free on all threats ${emoji}`
+      `${EMOJI} word came down ${EMOJI} we are green to go ${EMOJI} so gear up and grab your shoots ${EMOJI} we're going to warzone ${EMOJI} rules of engagement are simple ${EMOJI} weapons free on all threats ${EMOJI}`,
     );
   },
 };

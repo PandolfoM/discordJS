@@ -1,59 +1,31 @@
-const { EmbedBuilder, SlashCommandBuilder } = require("discord.js");
+const { SlashCommandBuilder, InteractionContextType } = require("discord.js");
 const colors = require("../../config/colors");
+const { statusEmbed } = require("../../config/embeds");
+const { ensureVoice } = require("../../utils/musicUtils");
 
 module.exports = {
   category: "Music",
-  data: new SlashCommandBuilder().setName("skip").setDescription("Skip track"),
+  data: new SlashCommandBuilder()
+    .setName("skip")
+    .setDescription("Skip track")
+    .setContexts(InteractionContextType.Guild),
 
   async execute(interaction, client) {
-    const voiceChannel = interaction.member.voice.channel;
-    const queue = await client.distube.getQueue(interaction);
-    if (!voiceChannel) {
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.error)
-            .setDescription(
-              `🚫 | You must be in a voice channel to use this command!`
-            ),
-        ],
-      });
+    const voice = await ensureVoice(interaction, client);
+    if (!voice) {
+      return;
     }
-    if (
-      interaction.guild.members.me.voice.channelId !==
-      interaction.member.voice.channelId
-    ) {
+    const { queue } = voice;
+
+    if (queue.songs.length <= 1 && !queue.autoplay) {
+      await queue.stop();
+      client.distube.voices.leave(interaction.guildId);
       return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.error)
-            .setDescription(
-              `🚫 | You need to be on the same voice channel as the Bot!`
-            ),
-        ],
+        embeds: [statusEmbed(colors.error, "🚫 | There are no more songs in the queue!")],
       });
     }
 
-    if (queue.songs.length === 1) {
-      queue.stop();
-      client.distube.voices.leave(interaction);
-      await interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.error)
-            .setDescription(`🚫 | There are no more songs in the queue!`),
-        ],
-      });
-      return;
-    } else {
-      queue.skip();
-      await interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.info)
-            .setDescription(`⏩ | Skipped!`),
-        ],
-      });
-    }
+    await queue.skip();
+    await interaction.reply({ embeds: [statusEmbed(colors.info, "⏩ | Skipped!")] });
   },
 };

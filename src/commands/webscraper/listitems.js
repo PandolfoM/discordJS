@@ -1,102 +1,89 @@
-const { SlashCommandBuilder } = require("@discordjs/builders");
-const { getItemNames, removeItemNumber } = require("../../utils/firebaseUtils");
+const {
+  SlashCommandBuilder,
+  ButtonBuilder,
+  ButtonStyle,
+  ActionRowBuilder,
+  ComponentType,
+  MessageFlags,
+} = require("discord.js");
+const { getItems, removeItemNumber } = require("../../utils/firebaseUtils");
 const colors = require("../../config/colors");
 const urlShortener = require("../../utils/urlShortener");
-const { ButtonBuilder, ButtonStyle, ActionRowBuilder } = require("discord.js");
+
+// Embeds allow 25 fields (one is used for the footer note); 5 rows x 5 buttons.
+const MAX_ITEMS = 24;
+const BUTTONS_PER_ROW = 5;
+const BUTTON_PREFIX = "listitems:remove:";
+const THUMBNAIL = "https://media.tenor.com/IVh7YxGaB_4AAAAC/nerd-emoji.gif";
+
+const scraperEmbed = (description, fields) => ({
+  color: colors.info,
+  title: "Web Scraper",
+  description,
+  ...(fields && { thumbnail: { url: THUMBNAIL }, fields }),
+});
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("listitems")
     .setDescription("List of all items that you are watching"),
   async execute(interaction) {
-    try {
-      const items = await getItemNames(interaction.user.id);
+    const userId = interaction.user.id;
+    const items = (await getItems(userId)).slice(0, MAX_ITEMS);
 
-      if (items.length > 0) {
-        const mappedFieldsPromise = items.map(async (i, index) => ({
-          name: `[${index + 1}] ${i.name.toUpperCase()}`,
-          value: await urlShortener(i.url),
-        }));
-
-        const mappedFields = await Promise.all(mappedFieldsPromise);
-
-        const allFields = mappedFields.concat({
-          name: "Remove item",
-          value: "Press button below to remove item",
-        });
-        const buttons = items.map((i, index) => {
-          return new ButtonBuilder()
-            .setCustomId(`${index + 1}`)
-            .setLabel(`${index + 1}`)
-            .setStyle(ButtonStyle.Danger);
-        });
-        const row = new ActionRowBuilder().addComponents(buttons);
-
-        const response = await interaction.reply({
-          embeds: [
-            {
-              color: colors.info,
-              title: "Web Scraper",
-              description: "These are all the items you are currently watching",
-              thumbnail: {
-                url: "https://media.tenor.com/IVh7YxGaB_4AAAAC/nerd-emoji.gif",
-              },
-              fields: allFields,
-            },
-          ],
-          components: [row],
-          ephemeral: true,
-        });
-
-        const collectorFilter = (i) => i.user.id === interaction.user.id;
-
-        try {
-          const confirmation = await response.awaitMessageComponent({
-            filter: collectorFilter,
-            time: 60_000,
-          });
-          if (confirmation.customId) {
-            const removeItem = await removeItemNumber(
-              interaction.user.id,
-              confirmation.customId - 1
-            );
-
-            await interaction.editReply({
-              components: [],
-              embeds: [
-                {
-                  color: colors.info,
-                  title: "Web Scraper",
-                  description: removeItem,
-                },
-              ],
-            });
-          }
-        } catch (e) {
-          await interaction.editReply({
-            components: [],
-            embeds: [
-              {
-                color: colors.info,
-                title: "Web Scraper",
-                description: "No item was selected",
-              },
-            ],
-          });
-        }
-      } else {
-        await interaction.reply({
-          embeds: [
-            {
-              color: colors.error,
-              title: "You don't have any watched items",
-            },
-          ],
-          ephemeral: true,
-        });
-      }
-    } catch (error) {
-      console.log(error);
+    if (!items.length) {
+      return interaction.reply({
+        embeds: [{ color: colors.error, title: "You don't have any watched items" }],
+        flags: MessageFlags.Ephemeral,
+      });
     }
+
+    // Shortening links can take a while; defer so the interaction doesn't time out.
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+
+    const fields = await Promise.all(
+      items.map(async (item, index) => ({
+        name: `[${index + 1}] ${item.name.toUpperCase()}`.slice(0, 256),
+        value: await urlShortener(item.url),
+      })),
+    );
+    fields.push({ name: "Remove item", value: "Press button below to remove item" });
+
+    const rows = [];
+    for (let i = 0; i < items.length; i += BUTTONS_PER_ROW) {
+      rows.push(
+        new ActionRowBuilder().addComponents(
+          items.slice(i, i + BUTTONS_PER_ROW).map((_, offset) =>
+            new ButtonBuilder()
+              .setCustomId(`${BUTTON_PREFIX}${i + offset}`)
+              .setLabel(`${i + offset + 1}`)
+              .setStyle(ButtonStyle.Danger),
+          ),
+        ),
+      );
+    }
+
+    const message = await interaction.editReply({
+      embeds: [scraperEmbed("These are all the items you are currently watching", fields)],
+      components: rows,
+    });
+
+    let click;
+    try {
+      click = await message.awaitMessageComponent({
+        componentType: ComponentType.Button,
+        filter: (i) => i.user.id === userId && i.customId.startsWith(BUTTON_PREFIX),
+        time: 60_000,
+      });
+    } catch {
+      return interaction.editReply({
+        embeds: [scraperEmbed("No item was selected")],
+        components: [],
+      });
+    }
+
+    const index = Number(click.customId.slice(BUTTON_PREFIX.length));
+    const result = await removeItemNumber(userId, index);
+    await click.update({ embeds: [scraperEmbed(result)], components: [] });
   },
 };

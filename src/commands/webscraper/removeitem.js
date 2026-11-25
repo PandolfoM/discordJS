@@ -1,38 +1,25 @@
-const { SlashCommandBuilder } = require("@discordjs/builders");
+const { SlashCommandBuilder, MessageFlags } = require("discord.js");
 const { removeUrl } = require("../../utils/firebaseUtils");
+const { isAmazonUrl } = require("../../utils/amazon");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("removeitem")
     .setDescription("Remove item from webscraper")
     .addStringOption((option) =>
-      option.setName("url").setRequired(true).setDescription("AMAZON URLS ONLY")
+      option.setName("url").setRequired(true).setDescription("AMAZON URLS ONLY"),
     ),
   async execute(interaction) {
-    const url = interaction.options.getString("url");
+    const url = interaction.options.getString("url").trim();
 
-    if (
-      url.toLowerCase().includes("amazon.com") ||
-      url.toLowerCase().includes("a.co")
-    ) {
-      try {
-        await removeUrl(interaction.user.id, url);
-        await interaction.reply({
-          content: `removed: ${url}`,
-          ephemeral: true,
-        });
-      } catch (error) {
-        console.log(error);
-      }
-    } else {
-      try {
-        await interaction.reply({
-          content: "Not a valid url",
-          ephemeral: true,
-        });
-      } catch (error) {
-        console.log(error);
-      }
+    if (!isAmazonUrl(url)) {
+      return interaction.reply({ content: "Not a valid url", flags: MessageFlags.Ephemeral });
     }
+
+    const removed = await removeUrl(interaction.user.id, url);
+    await interaction.reply({
+      content: removed ? `Removed: ${url}` : "That URL isn't in your watch list",
+      flags: MessageFlags.Ephemeral,
+    });
   },
 };

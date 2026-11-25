@@ -1,8 +1,44 @@
-const { SlashCommandBuilder } = require("@discordjs/builders");
-const { default: axios } = require("axios");
+const axios = require("axios");
+const {
+  SlashCommandBuilder,
+  PermissionFlagsBits,
+  InteractionContextType,
+  MessageFlags,
+} = require("discord.js");
 const logger = require("../../utils/logger");
-const { PermissionFlagsBits } = require("discord.js");
 const colors = require("../../config/colors");
+const { errorEmbed } = require("../../config/embeds");
+
+const MAX_EMOJI_BYTES = 256 * 1024;
+
+function getEmoteIdFromUrl(url) {
+  try {
+    const { hostname, pathname } = new URL(url);
+    if (hostname !== "7tv.app" && !hostname.endsWith(".7tv.app")) {
+      return null;
+    }
+    return pathname.split("/").filter(Boolean).pop() ?? null;
+  } catch {
+    return null;
+  }
+}
+
+/** Largest file under Discord's size limit, preferring GIF for animated emotes. */
+async function getEmoteData(id) {
+  const { data } = await axios.get(`https://7tv.io/v3/emotes/${id}`, { timeout: 10_000 });
+  const format = data.animated ? "GIF" : "PNG";
+  const files = (data.host?.files ?? data.versions?.[0]?.host?.files ?? []).filter(
+    (file) => file.format === format && file.size < MAX_EMOJI_BYTES,
+  );
+  const file = files.at(-1);
+  if (!file) {
+    return null;
+  }
+
+  // Discord emoji names: 2-32 chars, alphanumeric/underscore.
+  const name = data.name.replace(/\W/g, "").slice(0, 32).padEnd(2, "_");
+  return { name, url: `https://cdn.7tv.app/emote/${id}/${file.name}` };
+}
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -16,87 +52,37 @@ module.exports = {
           option
             .setName("url")
             .setDescription("Url of the emoji from 7TV")
-            .setRequired(true)
-        )
+            .setRequired(true),
+        ),
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild)
-    .setDMPermission(false),
+    .setContexts(InteractionContextType.Guild),
   async execute(interaction) {
-    if (interaction.options.getSubcommand() === "steal") {
-      const url = interaction.options.getString("url");
+    const emoteId = getEmoteIdFromUrl(interaction.options.getString("url"));
+    if (!emoteId) {
+      return interaction.reply({
+        embeds: [{ color: colors.error, title: "Not a valid 7TV URL" }],
+        flags: MessageFlags.Ephemeral,
+      });
+    }
 
-      if (!url.includes("7tv.app")) {
-        return await interaction.reply({
-          embeds: [
-            {
-              color: colors.error,
-              title: "Not a valid 7TV URL",
-            },
-          ],
-          ephemeral: true,
+    await interaction.deferReply();
+
+    try {
+      const emote = await getEmoteData(emoteId);
+      if (!emote) {
+        return interaction.editReply({
+          embeds: [{ color: colors.error, title: "No version of that emote fits Discord's 256KB limit" }],
         });
       }
 
-      const emoteID = getEmoteIdFromUrl(url);
-
-      try {
-        const emoteData = await getEmoteData(emoteID);
-        await interaction.guild.emojis.create({
-          attachment: emoteData.emote,
-          name: emoteData.name,
-        });
-
-        await interaction.reply({
-          embeds: [
-            {
-              color: colors.success,
-              title: `Added ${emoteData.name}`,
-              image: {
-                url: emoteData.emote,
-              },
-            },
-          ],
-          // ephemeral: true,
-        });
-      } catch (error) {
-        logger(error);
-      }
+      await interaction.guild.emojis.create({ attachment: emote.url, name: emote.name });
+      await interaction.editReply({
+        embeds: [{ color: colors.success, title: `Added ${emote.name}`, image: { url: emote.url } }],
+      });
+    } catch (error) {
+      logger(error);
+      await interaction.editReply({ embeds: [errorEmbed] });
     }
   },
 };
-
-function getEmoteIdFromUrl(url) {
-  const urlSegments = url.split("/");
-  return urlSegments[urlSegments.length - 1];
-}
-
-async function getEmoteData(id) {
-  try {
-    const res = await axios.get("https://7tv.io/v3/emotes/" + id);
-    if (res) {
-      let emote = "";
-      const files = res.data.versions[0].host.files;
-
-      if (res.data.animated) {
-        const gifData = files.filter((item) => {
-          return item.format === "GIF" && item.size < 262144;
-        });
-
-        emote = `https://cdn.7tv.app/emote/${id}/${gifData[gifData.length - 1].name}`;
-      } else {
-        const pngData = files.filter((item) => {
-          return item.format === "PNG" && item.size < 262144;
-        });
-
-        emote = `https://cdn.7tv.app/emote/${id}/${pngData[pngData.length - 1].name}`;
-      }
-
-      return {
-        name: res.data.name,
-        emote: emote,
-      };
-    }
-  } catch (error) {
-    logger(error);
-  }
-}

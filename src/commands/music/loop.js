@@ -1,102 +1,46 @@
-const { EmbedBuilder, SlashCommandBuilder } = require("discord.js");
+const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require("discord.js");
+const { RepeatMode } = require("distube");
 const colors = require("../../config/colors");
+const { ensureVoice } = require("../../utils/musicUtils");
+
+const MESSAGES = {
+  [RepeatMode.DISABLED]: "🔁 | Repeat mode is now off!",
+  [RepeatMode.SONG]: "🔁 | Song loop mode is on!",
+  [RepeatMode.QUEUE]: "🔁 | Playlist looping is enabled!",
+};
 
 module.exports = {
   category: "Music",
   data: new SlashCommandBuilder()
     .setName("loop")
     .setDescription("Loop the current song!")
-    .addStringOption((option) =>
+    .addIntegerOption((option) =>
       option
         .setName("type")
         .setDescription("Choose the type of loop!")
         .setRequired(true)
-        .setAutocomplete(true)
-    ),
+        .addChoices(
+          { name: "Turn off repeat mode", value: RepeatMode.DISABLED },
+          { name: "Repeat the song", value: RepeatMode.SONG },
+          { name: "Repeat song list", value: RepeatMode.QUEUE },
+        ),
+    )
+    .setContexts(InteractionContextType.Guild),
 
-  async autocomplete(interaction) {
-    const focusedValue = interaction.options.getFocused();
-    const choices = [
-      "Turn off repeat mode",
-      "Repeat the song",
-      "Repeat song list",
-    ];
-    const filtered = choices.filter((choice) =>
-      choice.startsWith(focusedValue)
-    );
-    await interaction.respond(
-      filtered.map((choice) => ({ name: choice, value: choice }))
-    );
-  },
   async execute(interaction, client) {
-    const loop = interaction.options.getString("type");
-    const voiceChannel = interaction.member.voice.channel;
-    const queue = await client.distube.getQueue(interaction);
-    if (!voiceChannel) {
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.error)
-            .setDescription(
-              `🚫 | You must be in a voice channel to use this command!`
-            ),
-        ],
-      });
-    }
-    if (
-      interaction.guild.members.me.voice.channelId !==
-      interaction.member.voice.channelId
-    ) {
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.error)
-            .setDescription(
-              `🚫 | You need to be on the same voice channel as the Bot!`
-            ),
-        ],
-      });
+    const voice = await ensureVoice(interaction, client);
+    if (!voice) {
+      return;
     }
 
-    if (loop === "Turn off repeat mode") {
-      queue.setRepeatMode(0);
-      interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.success)
-            .setAuthor({
-              name: "Repeat mode",
-              iconURL: client.user.displayAvatarURL(),
-            })
-            .setDescription(`🔁 | Repeat mode is now off!`),
-        ],
-      });
-    } else if (loop === "Repeat the song") {
-      queue.setRepeatMode(1);
-      interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.success)
-            .setAuthor({
-              name: "Repeat mode",
-              iconURL: client.user.displayAvatarURL(),
-            })
-            .setDescription(`🔁 | Song loop mode is on!`),
-        ],
-      });
-    } else if (loop === "Repeat song list") {
-      queue.setRepeatMode(2);
-      interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.success)
-            .setAuthor({
-              name: "Repeat mode",
-              iconURL: client.user.displayAvatarURL(),
-            })
-            .setDescription(`🔁 | Playlist looping is enabled!`),
-        ],
-      });
-    }
+    const mode = voice.queue.setRepeatMode(interaction.options.getInteger("type"));
+    await interaction.reply({
+      embeds: [
+        new EmbedBuilder()
+          .setColor(colors.success)
+          .setAuthor({ name: "Repeat mode", iconURL: client.user.displayAvatarURL() })
+          .setDescription(MESSAGES[mode]),
+      ],
+    });
   },
 };

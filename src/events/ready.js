@@ -1,62 +1,42 @@
-const { ActivityType } = require("discord.js");
-const webscrape = require("../functions/webscraper");
-const { query, collection, onSnapshot } = require("firebase/firestore");
+const { ActivityType, Events } = require("discord.js");
+const { collection, onSnapshot } = require("firebase/firestore");
 const db = require("../firebaseConfig");
+const { startWebscraper } = require("../functions/webscraper");
+
+const PRESENCE_INTERVAL_MS = 60 * 1000;
+const PRESENCES = [
+  { type: ActivityType.Watching, name: "Epicans 🌭" },
+  { type: ActivityType.Playing, name: "Duel of the Fates 🎻" },
+  { type: ActivityType.Listening, name: "The Cantina Band" },
+  { type: ActivityType.Competing, name: "The Boonta Eve Classic" },
+];
 
 module.exports = {
-  name: "ready",
+  name: Events.ClientReady,
   once: true,
-  async execute(client) {
-    const statusArr = [
-      {
-        type: ActivityType.Watching,
-        content: "Epicans 🌭",
-        status: "online",
-      },
-      {
-        type: ActivityType.Playing,
-        content: "Duel of the Fates 🎻",
-        status: "online",
-      },
-      {
-        type: ActivityType.Listening,
-        content: "The Cantina Band",
-        status: "online",
-      },
-      {
-        type: ActivityType.Competing,
-        content: "The Boonta Eve Classic",
-        status: "online",
-      },
-    ];
+  execute(client) {
+    const setRandomPresence = () => {
+      const activity = PRESENCES[Math.floor(Math.random() * PRESENCES.length)];
+      client.user.setPresence({ activities: [activity], status: "online" });
+    };
+    setRandomPresence();
+    setInterval(setRandomPresence, PRESENCE_INTERVAL_MS);
 
-    async function switchPresence() {
-      const option = Math.floor(Math.random() * statusArr.length);
+    onSnapshot(
+      collection(db, "settings"),
+      (snapshot) => {
+        for (const change of snapshot.docChanges()) {
+          if (change.type === "removed") {
+            client.settings.delete(change.doc.id);
+          } else {
+            client.settings.set(change.doc.id, change.doc.data());
+          }
+        }
+      },
+      (error) => console.error("Settings listener error:", error),
+    );
 
-      try {
-        await client.user.setPresence({
-          activities: [
-            {
-              name: statusArr[option].content,
-              type: statusArr[option].type,
-            },
-          ],
-          status: statusArr[option].status,
-        });
-      } catch (error) {
-        console.log(error);
-      }
-      setTimeout(switchPresence, 60 * 1000);
-    }
-
-    const q = query(collection(db, "settings"));
-    onSnapshot(q, (querySnapshot) => {
-      querySnapshot.forEach((doc) => {
-        client.settings.set(doc.id, doc.data());
-      });
-    });
-    switchPresence();
-    setTimeout(webscrape, 1 * 60 * 1000); // 1 minute
+    startWebscraper(client);
     console.log(`Ready! Logged in as ${client.user.tag}`);
   },
 };

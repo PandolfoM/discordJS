@@ -1,21 +1,34 @@
-const { SlashCommandBuilder } = require("@discordjs/builders");
-const { PermissionFlagsBits } = require("discord.js");
-const { exec } = require("child_process");
+const { promisify } = require("node:util");
+const exec = promisify(require("node:child_process").exec);
+const {
+  SlashCommandBuilder,
+  PermissionFlagsBits,
+  InteractionContextType,
+  MessageFlags,
+} = require("discord.js");
 const colors = require("../../config/colors");
 const logger = require("../../utils/logger");
 const { errorEmbed } = require("../../config/embeds");
+
+const SCRIPTS = {
+  pm2: "../pm2_expect.sh",
+  main: "../gitmain_expect.sh",
+  develop: "../gitdevelop_expect.sh",
+};
+
+const info = (title) => ({ embeds: [{ color: colors.info, title }] });
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("cmd")
     .setDescription("Git command")
     .addSubcommand((subcommand) =>
-      subcommand.setName("gitpull").setDescription("Git pull")
+      subcommand.setName("gitpull").setDescription("Git pull"),
     )
     .addSubcommand((subcommand) =>
       subcommand
         .setName("pm2")
-        .setDescription("Runs the reload sequence for pm2")
+        .setDescription("Runs the reload sequence for pm2"),
     )
     .addSubcommand((subcommand) =>
       subcommand
@@ -27,124 +40,39 @@ module.exports = {
             .setDescription("Branch to checkout to")
             .setRequired(true)
             .addChoices(
-              {
-                name: "Main",
-                value: "main",
-              },
-              {
-                name: "Develop",
-                value: "develop",
-              }
-            )
-        )
+              { name: "Main", value: "main" },
+              { name: "Develop", value: "develop" },
+            ),
+        ),
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-    .setDMPermission(false),
+    .setContexts(InteractionContextType.Guild),
   async execute(interaction) {
-    if (interaction.options.getSubcommand() === "gitpull") {
-      await interaction.deferReply({ ephemeral: true });
-      exec("git pull", async (error, stdout, stderr) => {
-        if (error) {
-          await interaction.editReply({
-            embeds: [errorEmbed],
-          });
-          logger(error.message);
-          return;
-        }
+    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    const subcommand = interaction.options.getSubcommand();
 
-        if (stderr) {
-          await interaction.editReply({
-            embeds: [errorEmbed],
-          });
-          logger(stderr);
-          return;
-        }
-
-        if (stdout.includes("Already up to date")) {
-          await interaction.editReply({
-            embeds: [
-              {
-                color: colors.info,
-                title: "Already up to date",
-              },
-            ],
-          });
-        } else {
-          await interaction.editReply({
-            embeds: [
-              {
-                color: colors.info,
-                title: "Pull Successful",
-              },
-            ],
-          });
-        }
-      });
-    }
-
-    if (interaction.options.getSubcommand() === "pm2") {
-      exec(`../pm2_expect.sh`, async (error, stdout, stderr) => {
-        if (error) {
-          await interaction.reply({
-            embeds: [errorEmbed],
-          });
-          logger(error.message);
-          return;
-        }
-
-        if (stderr) {
-          await interaction.reply({
-            embeds: [errorEmbed],
-          });
-          logger(stderr);
-          return;
-        }
-      });
-    }
-
-    if (interaction.options.getSubcommand() === "checkout") {
-      if (interaction.options.getString("branch") === "main") {
-        exec(`../gitmain_expect.sh`, async (error, stdout, stderr) => {
-          console.log(error);
-          console.log(stdout);
-          console.log(stderr);
-          if (error) {
-            await interaction.reply({
-              embeds: [errorEmbed],
-            });
-            logger(error.message);
-            return;
-          }
-
-          if (stderr) {
-            await interaction.reply({
-              embeds: [errorEmbed],
-            });
-            logger(stderr);
-            return;
-          }
-        });
+    try {
+      if (subcommand === "gitpull") {
+        // git writes progress to stderr on success, so only the exit code matters.
+        const { stdout } = await exec("git pull");
+        return interaction.editReply(
+          info(stdout.includes("Already up to date") ? "Already up to date" : "Pull Successful"),
+        );
       }
 
-      if (interaction.options.getString("branch") === "develop") {
-        exec(`../gitdevelop_expect.sh`, async (error, stdout, stderr) => {
-          if (error) {
-            await interaction.reply({
-              embeds: [errorEmbed],
-            });
-            logger(error.message);
-            return;
-          }
-
-          if (stderr) {
-            await interaction.reply({
-              embeds: [errorEmbed],
-            });
-            logger(stderr);
-            return;
-          }
-        });
+      if (subcommand === "pm2") {
+        // pm2 reload restarts this process, so reply before running it.
+        await interaction.editReply(info("Reloading..."));
+        await exec(SCRIPTS.pm2);
+        return;
       }
+
+      const branch = interaction.options.getString("branch");
+      await exec(SCRIPTS[branch]);
+      await interaction.editReply(info(`Checked out ${branch}`));
+    } catch (error) {
+      logger(error.stderr || error.message);
+      await interaction.editReply({ embeds: [errorEmbed] });
     }
   },
 };

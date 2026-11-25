@@ -1,92 +1,53 @@
-const { EmbedBuilder, SlashCommandBuilder } = require("discord.js");
+const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require("discord.js");
 const colors = require("../../config/colors");
+const { ensureVoice } = require("../../utils/musicUtils");
+
+const PAGE_SIZE = 10;
+const plural = (n) => (n === 1 ? "" : "s");
 
 module.exports = {
   category: "Music",
   data: new SlashCommandBuilder()
     .setName("queue")
-    .setDescription("See the list of songs in the queue!"),
+    .setDescription("See the list of songs in the queue!")
+    .setContexts(InteractionContextType.Guild),
 
   async execute(interaction, client) {
-    const voiceChannel = interaction.member.voice.channel;
-    const queue = await client.distube.getQueue(interaction);
-    if (!voiceChannel) {
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.error)
-            .setDescription(
-              `🚫 | You must be in a voice channel to use this command!`
-            ),
-        ],
-      });
+    const voice = await ensureVoice(interaction, client);
+    if (!voice) {
+      return;
     }
 
-    if (
-      interaction.guild.members.me.voice.channelId !==
-      interaction.member.voice.channelId
-    ) {
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.error)
-            .setDescription(
-              `🚫 | You need to be on the same voice channel as the Bot!`
-            ),
-        ],
-      });
-    }
+    const { queue } = voice;
+    const [current] = queue.songs;
+    const total = queue.songs.length;
 
-    if (!queue) {
-      return await interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.error)
-            .setDescription(`🚫 | There are no songs in the queue!`),
-        ],
-        ephemeral: true,
-      });
-    }
+    const tracks = queue.songs
+      .slice(0, PAGE_SIZE)
+      .map(
+        (song, i) =>
+          `**${i + 1}** - [${song.name}](${song.url}) | ${song.formattedDuration}\nRequest by: ${song.user}`,
+      );
+    const summary =
+      total > PAGE_SIZE
+        ? `And **${total - PAGE_SIZE}** more song${plural(total - PAGE_SIZE)}...`
+        : `Playlist **${total}** song${plural(total)}...`;
 
-    const tracks = queue.songs.map(
-      (song, i) => `**${i + 1}** - [${song.name}](${song.url}) | ${
-        song.formattedDuration
-      }
-        Request by: ${song.user}`
-    );
-
-    const songs = queue.songs.length;
-    const nextSongs =
-      songs > 10
-        ? `And **${songs - 10}** more song${songs > 1 ? "s" : ""}...`
-        : `Playlist **${songs}** song${songs > 1 ? "s" : ""}...`;
-
-    interaction.reply({
+    await interaction.reply({
       embeds: [
         new EmbedBuilder()
           .setColor(colors.info)
-          .setAuthor({
-            name: "Queue",
-            iconURL: client.user.displayAvatarURL(),
-          })
-          .setDescription(`${tracks.slice(0, 10).join("\n")}\n\n${nextSongs}`)
-          .addFields([
+          .setAuthor({ name: "Queue", iconURL: client.user.displayAvatarURL() })
+          .setDescription(`${tracks.join("\n")}\n\n${summary}`.slice(0, 4096))
+          .addFields(
             {
               name: "> Playing:",
-              value: `[${queue.songs[0].name}](${queue.songs[0].url}) - ${queue.songs[0].formattedDuration} | Request by: ${queue.songs[0].user}`,
+              value: `[${current.name}](${current.url}) - ${current.formattedDuration} | Request by: ${current.user}`.slice(0, 1024),
               inline: true,
             },
-            {
-              name: "> Total times:",
-              value: `${queue.formattedDuration}`,
-              inline: true,
-            },
-            {
-              name: "> Total songs:",
-              value: `${songs}`,
-              inline: true,
-            },
-          ]),
+            { name: "> Total times:", value: queue.formattedDuration, inline: true },
+            { name: "> Total songs:", value: `${total}`, inline: true },
+          ),
       ],
     });
   },
