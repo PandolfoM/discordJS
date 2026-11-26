@@ -1,4 +1,8 @@
-const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require("discord.js");
+const {
+  EmbedBuilder,
+  SlashCommandBuilder,
+  InteractionContextType,
+} = require("discord.js");
 const colors = require("../../config/colors");
 const { ensureVoice, replyError } = require("../../utils/musicUtils");
 
@@ -25,7 +29,10 @@ module.exports = {
       embeds: [
         new EmbedBuilder()
           .setColor(colors.info)
-          .setAuthor({ name: "Resume", iconURL: client.user.displayAvatarURL() })
+          .setAuthor({
+            name: "Resume",
+            iconURL: client.user.displayAvatarURL(),
+          })
           .setDescription("⏯️ | Resume playing current song!"),
       ],
     });

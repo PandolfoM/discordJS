@@ -1,4 +1,8 @@
-const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require("discord.js");
+const {
+  EmbedBuilder,
+  SlashCommandBuilder,
+  InteractionContextType,
+} = require("discord.js");
 const colors = require("../../config/colors");
 const { ensureVoice, replyError } = require("../../utils/musicUtils");
 

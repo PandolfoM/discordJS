@@ -9,7 +9,8 @@ const MAX_MESSAGE_LENGTH = 2000;
 
 // Created lazily so a missing key doesn't crash the bot at startup.
 let openai;
-const getOpenAI = () => (openai ??= new OpenAI({ apiKey: process.env.OPENAI_KEY }));
+const getOpenAI = () =>
+  (openai ??= new OpenAI({ apiKey: process.env.OPENAI_KEY }));
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -32,15 +33,20 @@ module.exports = {
         messages: [
           {
             role: "system",
-            content: "You are Epicans, a friendly Discord bot. Keep answers short.",
+            content:
+              "You are Epicans, a friendly Discord bot. Keep answers short.",
           },
           { role: "user", content: prompt },
         ],
       });
 
-      const text = completion.choices[0]?.message?.content?.trim() || "I have nothing to say.";
+      const text =
+        completion.choices[0]?.message?.content?.trim() ||
+        "I have nothing to say.";
       await interaction.editReply(
-        text.length > MAX_MESSAGE_LENGTH ? `${text.slice(0, MAX_MESSAGE_LENGTH - 3)}...` : text,
+        text.length > MAX_MESSAGE_LENGTH
+          ? `${text.slice(0, MAX_MESSAGE_LENGTH - 3)}...`
+          : text,
       );
     } catch (error) {
       if (error instanceof OpenAI.RateLimitError) {

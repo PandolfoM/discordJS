@@ -1,4 +1,8 @@
-const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require("discord.js");
+const {
+  EmbedBuilder,
+  SlashCommandBuilder,
+  InteractionContextType,
+} = require("discord.js");
 const { RepeatMode } = require("distube");
 const colors = require("../../config/colors");
 const { ensureVoice } = require("../../utils/musicUtils");
@@ -37,7 +41,10 @@ module.exports = {
 
     let upNext = upcoming
       .slice(0, UP_NEXT_COUNT)
-      .map((song, i) => `**${i + 1}.** ${songLink(song)} \`${song.formattedDuration}\``)
+      .map(
+        (song, i) =>
+          `**${i + 1}.** ${songLink(song)} \`${song.formattedDuration}\``,
+      )
       .join("\n");
     const hidden = upcoming.length - UP_NEXT_COUNT;
     if (hidden > 0) {
@@ -51,10 +58,21 @@ module.exports = {
           .setAuthor({ name: "Queue", iconURL: client.user.displayAvatarURL() })
           .addFields(
             { name: "▶️ Now playing", value: nowPlaying.slice(0, 1024) },
-            { name: "⏭️ Up next", value: (upNext || "Nothing else queued").slice(0, 1024) },
+            {
+              name: "⏭️ Up next",
+              value: (upNext || "Nothing else queued").slice(0, 1024),
+            },
             { name: "Songs", value: `${queue.songs.length}`, inline: true },
-            { name: "Total time", value: queue.formattedDuration, inline: true },
-            { name: "Repeat", value: REPEAT_LABELS[queue.repeatMode], inline: true },
+            {
+              name: "Total time",
+              value: queue.formattedDuration,
+              inline: true,
+            },
+            {
+              name: "Repeat",
+              value: REPEAT_LABELS[queue.repeatMode],
+              inline: true,
+            },
           ),
       ],
     });

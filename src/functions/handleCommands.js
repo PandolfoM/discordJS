@@ -17,7 +17,9 @@ module.exports = async (client, commandsDir) => {
     for (const file of files) {
       const command = require(path.join(folderPath, file));
       if (!command.data || !command.execute) {
-        console.warn(`Skipping ${folder.name}/${file}: missing data or execute`);
+        console.warn(
+          `Skipping ${folder.name}/${file}: missing data or execute`,
+        );
         continue;
       }
       client.commands.set(command.data.name, command);
@@ -29,7 +31,10 @@ module.exports = async (client, commandsDir) => {
   try {
     console.log(`Refreshing ${body.length} application (/) commands...`);
     await rest.put(
-      Routes.applicationGuildCommands(process.env.CLIENTID, process.env.GUILDID),
+      Routes.applicationGuildCommands(
+        process.env.CLIENTID,
+        process.env.GUILDID,
+      ),
       { body },
     );
     console.log("Successfully reloaded application (/) commands.");

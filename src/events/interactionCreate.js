@@ -10,7 +10,9 @@ module.exports = {
 
     const command = client.commands.get(interaction.commandName);
     if (!command) {
-      console.error(`No command matching "${interaction.commandName}" was found.`);
+      console.error(
+        `No command matching "${interaction.commandName}" was found.`,
+      );
       return;
     }
 
@@ -18,7 +20,10 @@ module.exports = {
       try {
         await command.autocomplete?.(interaction);
       } catch (error) {
-        console.error(`Autocomplete error in /${interaction.commandName}:`, error);
+        console.error(
+          `Autocomplete error in /${interaction.commandName}:`,
+          error,
+        );
       }
       return;
     }

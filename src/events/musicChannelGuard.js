@@ -14,7 +14,9 @@ module.exports = {
       message.channelId !== musicChannelId ||
       message.author.bot ||
       message.system ||
-      message.channel.permissionsFor(message.member)?.has(PermissionFlagsBits.ManageMessages)
+      message.channel
+        .permissionsFor(message.member)
+        ?.has(PermissionFlagsBits.ManageMessages)
     ) {
       return;
     }

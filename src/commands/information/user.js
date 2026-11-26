@@ -7,7 +7,8 @@ const {
 } = require("discord.js");
 const colors = require("../../config/colors");
 
-const fullDate = (timestamp) => time(Math.floor(timestamp / 1000), TimestampStyles.LongDateTime);
+const fullDate = (timestamp) =>
+  time(Math.floor(timestamp / 1000), TimestampStyles.LongDateTime);
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -36,7 +37,10 @@ module.exports = {
             .setAuthor({ name: `Server Info ~ ${guild.name}` })
             .setThumbnail(guild.iconURL())
             .addFields(
-              { name: "Created Date:", value: fullDate(guild.createdTimestamp) },
+              {
+                name: "Created Date:",
+                value: fullDate(guild.createdTimestamp),
+              },
               { name: "Members:", value: `${guild.memberCount}` },
             ),
         ],
@@ -45,20 +49,30 @@ module.exports = {
 
     const target = interaction.options.getUser("target");
     const user = target ?? interaction.user;
-    const member = target ? interaction.options.getMember("target") : interaction.member;
+    const member = target
+      ? interaction.options.getMember("target")
+      : interaction.member;
     const isOwner = guild.ownerId === user.id;
 
     const embed = new EmbedBuilder()
       .setColor(colors.info)
-      .setAuthor({ name: `User Info ~ ${user.username}${isOwner ? " 👑" : ""}` })
+      .setAuthor({
+        name: `User Info ~ ${user.username}${isOwner ? " 👑" : ""}`,
+      })
       .setThumbnail(user.displayAvatarURL())
       .addFields({ name: "ID:", value: user.id })
       .setTimestamp();
 
     if (member?.joinedTimestamp) {
-      embed.addFields({ name: `Joined ${guild.name}:`, value: fullDate(member.joinedTimestamp) });
+      embed.addFields({
+        name: `Joined ${guild.name}:`,
+        value: fullDate(member.joinedTimestamp),
+      });
     }
-    embed.addFields({ name: "Account Created:", value: fullDate(user.createdTimestamp) });
+    embed.addFields({
+      name: "Account Created:",
+      value: fullDate(user.createdTimestamp),
+    });
 
     if (member?.nickname) {
       embed.setDescription(`AKA: ${member.nickname}`);

@@ -56,7 +56,11 @@ module.exports = {
         // git writes progress to stderr on success, so only the exit code matters.
         const { stdout } = await exec("git pull");
         return interaction.editReply(
-          info(stdout.includes("Already up to date") ? "Already up to date" : "Pull Successful"),
+          info(
+            stdout.includes("Already up to date")
+              ? "Already up to date"
+              : "Pull Successful",
+          ),
         );
       }
 

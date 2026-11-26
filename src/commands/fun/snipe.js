@@ -7,7 +7,8 @@ const {
 const colors = require("../../config/colors");
 
 const VIDEO_PATTERN = /\.(mp4|webm|mov)(\?|$)/i;
-const SNIPE_GIF = "https://media.tenor.com/images/14333b6252db0853a2c1331405e765c4/tenor.gif";
+const SNIPE_GIF =
+  "https://media.tenor.com/images/14333b6252db0853a2c1331405e765c4/tenor.gif";
 
 module.exports = {
   data: new SlashCommandBuilder()

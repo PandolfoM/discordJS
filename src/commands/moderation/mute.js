@@ -41,7 +41,8 @@ module.exports = {
   async execute(interaction) {
     const member = interaction.options.getMember("target");
     const minutes = interaction.options.getInteger("duration");
-    const reason = interaction.options.getString("reason") ?? "No reason provided";
+    const reason =
+      interaction.options.getString("reason") ?? "No reason provided";
 
     if (!member) {
       return replyError(interaction, "Invalid User");
@@ -67,7 +68,10 @@ module.exports = {
           .setColor(colors.info)
           .addFields(
             { name: "Duration of timeout:", value: `${minutes} Minute(s)` },
-            { name: "Mute until:", value: time(muteEnd, TimestampStyles.LongTime) },
+            {
+              name: "Mute until:",
+              value: time(muteEnd, TimestampStyles.LongTime),
+            },
             { name: "Reason:", value: reason.slice(0, 1024) },
           )
           .setTimestamp(),

@@ -2,7 +2,14 @@ const { SlashCommandBuilder, EmbedBuilder } = require("discord.js");
 const colors = require("../config/colors");
 
 /** Builds a "how X are you" command (/hot, /sus) with four emoji tiers. */
-function createRatingCommand({ name, title, description, userDescription, adjective, tiers }) {
+function createRatingCommand({
+  name,
+  title,
+  description,
+  userDescription,
+  adjective,
+  tiers,
+}) {
   return {
     data: new SlashCommandBuilder()
       .setName(name)

@@ -1,4 +1,8 @@
-const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require("discord.js");
+const {
+  EmbedBuilder,
+  SlashCommandBuilder,
+  InteractionContextType,
+} = require("discord.js");
 const { RepeatMode } = require("distube");
 const colors = require("../../config/colors");
 const { ensureVoice } = require("../../utils/musicUtils");
@@ -33,12 +37,17 @@ module.exports = {
       return;
     }
 
-    const mode = voice.queue.setRepeatMode(interaction.options.getInteger("type"));
+    const mode = voice.queue.setRepeatMode(
+      interaction.options.getInteger("type"),
+    );
     await interaction.reply({
       embeds: [
         new EmbedBuilder()
           .setColor(colors.success)
-          .setAuthor({ name: "Repeat mode", iconURL: client.user.displayAvatarURL() })
+          .setAuthor({
+            name: "Repeat mode",
+            iconURL: client.user.displayAvatarURL(),
+          })
           .setDescription(MESSAGES[mode]),
       ],
     });

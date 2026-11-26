@@ -1,7 +1,13 @@
 const { SlashCommandBuilder } = require("discord.js");
 const wait = require("node:timers/promises").setTimeout;
 
-const FRAMES = ["Flipping", "Flipping.", "Flipping..", "Flipping...", "Flipping...."];
+const FRAMES = [
+  "Flipping",
+  "Flipping.",
+  "Flipping..",
+  "Flipping...",
+  "Flipping....",
+];
 const FRAME_DELAY_MS = 500;
 
 module.exports = {

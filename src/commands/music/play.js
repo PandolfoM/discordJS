@@ -1,4 +1,8 @@
-const { SlashCommandBuilder, MessageFlags, InteractionContextType } = require("discord.js");
+const {
+  SlashCommandBuilder,
+  MessageFlags,
+  InteractionContextType,
+} = require("discord.js");
 const colors = require("../../config/colors");
 const { statusEmbed } = require("../../config/embeds");
 const { ensureVoice } = require("../../utils/musicUtils");
@@ -17,7 +21,9 @@ module.exports = {
     .setContexts(InteractionContextType.Guild),
 
   async execute(interaction, client) {
-    const voice = await ensureVoice(interaction, client, { requireQueue: false });
+    const voice = await ensureVoice(interaction, client, {
+      requireQueue: false,
+    });
     if (!voice) {
       return;
     }
@@ -25,10 +31,14 @@ module.exports = {
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
 
     try {
-      await client.distube.play(voice.voiceChannel, interaction.options.getString("song"), {
-        textChannel: interaction.channel,
-        member: interaction.member,
-      });
+      await client.distube.play(
+        voice.voiceChannel,
+        interaction.options.getString("song"),
+        {
+          textChannel: interaction.channel,
+          member: interaction.member,
+        },
+      );
       await interaction.editReply({
         embeds: [statusEmbed(colors.success, "🔍 | Successful search!")],
       });
@@ -36,7 +46,10 @@ module.exports = {
       console.error("Play error:", error);
       await interaction.editReply({
         embeds: [
-          statusEmbed(colors.error, `🚫 | Couldn't play that: ${String(error.message ?? error).slice(0, 1000)}`),
+          statusEmbed(
+            colors.error,
+            `🚫 | Couldn't play that: ${String(error.message ?? error).slice(0, 1000)}`,
+          ),
         ],
       });
     }

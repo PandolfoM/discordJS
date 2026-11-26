@@ -1,4 +1,8 @@
-const { EmbedBuilder, SlashCommandBuilder, InteractionContextType } = require("discord.js");
+const {
+  EmbedBuilder,
+  SlashCommandBuilder,
+  InteractionContextType,
+} = require("discord.js");
 const colors = require("../../config/colors");
 const { ensureVoice, replyError } = require("../../utils/musicUtils");
 
@@ -20,14 +24,20 @@ module.exports = {
     try {
       await voice.queue.previous();
     } catch {
-      return replyError(interaction, "The previous song in the playlist cannot be played back!");
+      return replyError(
+        interaction,
+        "The previous song in the playlist cannot be played back!",
+      );
     }
 
     await interaction.editReply({
       embeds: [
         new EmbedBuilder()
           .setColor(colors.success)
-          .setAuthor({ name: "Playback", iconURL: client.user.displayAvatarURL() })
+          .setAuthor({
+            name: "Playback",
+            iconURL: client.user.displayAvatarURL(),
+          })
           .setDescription("🎵 | Rewinding..."),
       ],
     });

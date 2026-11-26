@@ -1,4 +1,8 @@
-const { SlashCommandBuilder, EmbedBuilder, InteractionContextType } = require("discord.js");
+const {
+  SlashCommandBuilder,
+  EmbedBuilder,
+  InteractionContextType,
+} = require("discord.js");
 const colors = require("../../config/colors");
 
 module.exports = {
@@ -16,7 +20,8 @@ module.exports = {
       ],
       withResponse: true,
     });
-    const latency = resource.message.createdTimestamp - interaction.createdTimestamp;
+    const latency =
+      resource.message.createdTimestamp - interaction.createdTimestamp;
 
     await interaction.editReply({
       embeds: [

@@ -27,7 +27,9 @@ async function hasDJ(interaction) {
 
   if (!inAllowedChannel) {
     await interaction.reply({
-      embeds: [statusEmbed(colors.error, `Type in <#${musicChannel}> to play music`)],
+      embeds: [
+        statusEmbed(colors.error, `Type in <#${musicChannel}> to play music`),
+      ],
       flags: MessageFlags.Ephemeral,
     });
     return false;
@@ -37,7 +39,10 @@ async function hasDJ(interaction) {
     return true;
   }
 
-  await interaction.reply({ embeds: [noDjEmbed], flags: MessageFlags.Ephemeral });
+  await interaction.reply({
+    embeds: [noDjEmbed],
+    flags: MessageFlags.Ephemeral,
+  });
   return false;
 }
 
@@ -54,7 +59,10 @@ async function ensureVoice(
 ) {
   const voiceChannel = interaction.member.voice.channel;
   if (!voiceChannel) {
-    await replyError(interaction, "You must be in a voice channel to use this command!");
+    await replyError(
+      interaction,
+      "You must be in a voice channel to use this command!",
+    );
     return null;
   }
 
@@ -66,7 +74,10 @@ async function ensureVoice(
 
   const botChannelId = interaction.guild.members.me.voice.channelId;
   if (queue && botChannelId && botChannelId !== voiceChannel.id) {
-    await replyError(interaction, "You need to be on the same voice channel as the Bot!");
+    await replyError(
+      interaction,
+      "You need to be on the same voice channel as the Bot!",
+    );
     return null;
   }
 

@@ -27,7 +27,12 @@ module.exports = {
     const volume = interaction.options.getInteger("volume");
     voice.queue.setVolume(volume);
     await interaction.reply({
-      embeds: [statusEmbed(colors.success, `✅ | The volume has been changed to: ${volume}%/200%`)],
+      embeds: [
+        statusEmbed(
+          colors.success,
+          `✅ | The volume has been changed to: ${volume}%/200%`,
+        ),
+      ],
     });
   },
 };

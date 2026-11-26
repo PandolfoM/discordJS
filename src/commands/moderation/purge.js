@@ -40,7 +40,10 @@ module.exports = {
       });
     } catch (error) {
       console.error("Error while purging messages:", error);
-      await interaction.reply({ embeds: [errorEmbed], flags: MessageFlags.Ephemeral });
+      await interaction.reply({
+        embeds: [errorEmbed],
+        flags: MessageFlags.Ephemeral,
+      });
     }
   },
 };

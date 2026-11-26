@@ -86,7 +86,13 @@ function scheduleIdleLeave(guildId) {
       try {
         if (queue) {
           await queue.stop();
-          send(queue, statusEmbed(colors.info, "👋 | Left the voice channel because everyone left."));
+          send(
+            queue,
+            statusEmbed(
+              colors.info,
+              "👋 | Left the voice channel because everyone left.",
+            ),
+          );
         }
         voice.leave();
       } catch (error) {
@@ -137,8 +143,13 @@ client.distube
         .setColor(colors.info)
         .setAuthor({ name: "Added playlist to queue" })
         .setThumbnail(playlist.thumbnail ?? null)
-        .setDescription(`> [**${playlist.name}**](${playlist.url}) (${playlist.songs.length} songs)`)
-        .addFields({ name: "👌 | Request by", value: `${playlist.user ?? "Unknown"}` })
+        .setDescription(
+          `> [**${playlist.name}**](${playlist.url}) (${playlist.songs.length} songs)`,
+        )
+        .addFields({
+          name: "👌 | Request by",
+          value: `${playlist.user ?? "Unknown"}`,
+        })
         .setFooter(queueFooter(queue)),
     ),
   )
@@ -149,7 +160,9 @@ client.distube
       new EmbedBuilder()
         .setColor(colors.success)
         .setAuthor({ name: "Now playing" })
-        .setDescription(`> [**${song.name}**](${song.url}) \`${song.formattedDuration}\``)
+        .setDescription(
+          `> [**${song.name}**](${song.url}) \`${song.formattedDuration}\``,
+        )
         .setThumbnail(song.thumbnail ?? null)
         .addFields(
           { name: "🔷 | Status", value: status(queue) },
@@ -172,11 +185,17 @@ client.distube
   })
   .on("disconnect", (queue) => {
     cancelIdleLeave(queue.id);
-    send(queue, statusEmbed(colors.info, "👋 | Disconnected from the voice channel."));
+    send(
+      queue,
+      statusEmbed(colors.info, "👋 | Disconnected from the voice channel."),
+    );
   })
   .on("finish", (queue) => {
     scheduleIdleLeave(queue.id);
-    send(queue, statusEmbed(colors.info, "✅ | Queue finished! Use /play to add more."));
+    send(
+      queue,
+      statusEmbed(colors.info, "✅ | Queue finished! Use /play to add more."),
+    );
   })
   .on("noRelated", (queue) =>
     send(queue, statusEmbed(colors.error, "🚫 | Song not found!")),

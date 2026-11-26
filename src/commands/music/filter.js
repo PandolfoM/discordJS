@@ -3,7 +3,15 @@ const colors = require("../../config/colors");
 const { statusEmbed } = require("../../config/embeds");
 const { ensureVoice } = require("../../utils/musicUtils");
 
-const FILTERS = ["off", "3d", "bassboost", "echo", "karaoke", "nightcore", "surround"];
+const FILTERS = [
+  "off",
+  "3d",
+  "bassboost",
+  "echo",
+  "karaoke",
+  "nightcore",
+  "surround",
+];
 
 module.exports = {
   category: "Music",
@@ -15,7 +23,9 @@ module.exports = {
         .setName("type")
         .setDescription("Select filter type")
         .setRequired(true)
-        .addChoices(...FILTERS.map((filter) => ({ name: filter, value: filter }))),
+        .addChoices(
+          ...FILTERS.map((filter) => ({ name: filter, value: filter })),
+        ),
     )
     .setContexts(InteractionContextType.Guild),
 
@@ -36,7 +46,9 @@ module.exports = {
       embeds: [
         statusEmbed(
           colors.success,
-          filter === "off" ? "Filters have been removed!" : `Filter \`${filter}\` has been added to the audio!`,
+          filter === "off"
+            ? "Filters have been removed!"
+            : `Filter \`${filter}\` has been added to the audio!`,
         ),
       ],
     });

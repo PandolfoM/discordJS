@@ -24,17 +24,22 @@ function getEmoteIdFromUrl(url) {
 
 /** Largest file under Discord's size limit, preferring GIF for animated emotes. */
 async function getEmoteData(id) {
-  const res = await fetch(`https://7tv.io/v3/emotes/${encodeURIComponent(id)}`, {
-    signal: AbortSignal.timeout(10_000),
-  });
+  const res = await fetch(
+    `https://7tv.io/v3/emotes/${encodeURIComponent(id)}`,
+    {
+      signal: AbortSignal.timeout(10_000),
+    },
+  );
   if (!res.ok) {
     throw new Error(`7TV API returned ${res.status} for emote ${id}`);
   }
   const data = await res.json();
   const format = data.animated ? "GIF" : "PNG";
-  const files = (data.host?.files ?? data.versions?.[0]?.host?.files ?? []).filter(
-    (file) => file.format === format && file.size < MAX_EMOJI_BYTES,
-  );
+  const files = (
+    data.host?.files ??
+    data.versions?.[0]?.host?.files ??
+    []
+  ).filter((file) => file.format === format && file.size < MAX_EMOJI_BYTES);
   const file = files.at(-1);
   if (!file) {
     return null;
@@ -77,13 +82,27 @@ module.exports = {
       const emote = await getEmoteData(emoteId);
       if (!emote) {
         return interaction.editReply({
-          embeds: [{ color: colors.error, title: "No version of that emote fits Discord's 256KB limit" }],
+          embeds: [
+            {
+              color: colors.error,
+              title: "No version of that emote fits Discord's 256KB limit",
+            },
+          ],
         });
       }
 
-      await interaction.guild.emojis.create({ attachment: emote.url, name: emote.name });
+      await interaction.guild.emojis.create({
+        attachment: emote.url,
+        name: emote.name,
+      });
       await interaction.editReply({
-        embeds: [{ color: colors.success, title: `Added ${emote.name}`, image: { url: emote.url } }],
+        embeds: [
+          {
+            color: colors.success,
+            title: `Added ${emote.name}`,
+            image: { url: emote.url },
+          },
+        ],
       });
     } catch (error) {
       logger(error);

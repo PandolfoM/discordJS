@@ -22,7 +22,8 @@ const OPTIONAL_ENV = {
 
 const errors = [];
 const warnings = [];
-const jsFiles = (dir) => fs.readdirSync(dir).filter((file) => file.endsWith(".js"));
+const jsFiles = (dir) =>
+  fs.readdirSync(dir).filter((file) => file.endsWith(".js"));
 
 function checkCommands() {
   const dir = path.join(SRC, "commands");
@@ -40,7 +41,9 @@ function checkCommands() {
         }
         const { name } = command.data.toJSON(); // throws on invalid definitions
         if (names.has(name)) {
-          errors.push(`${label}: /${name} is also defined in ${names.get(name)}`);
+          errors.push(
+            `${label}: /${name} is also defined in ${names.get(name)}`,
+          );
         }
         names.set(name, label);
       } catch (error) {
@@ -74,7 +77,9 @@ function checkEnvironment() {
     if (!process.env[key]) errors.push(`.env: ${key} is not set`);
   }
   for (const [key, consequence] of Object.entries(OPTIONAL_ENV)) {
-    if (!process.env[key]) warnings.push(`.env: ${key} is not set (${consequence})`);
+    if (!process.env[key]) {
+      warnings.push(`.env: ${key} is not set (${consequence})`);
+    }
   }
 
   const ffmpegPath = require("ffmpeg-static");

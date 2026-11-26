@@ -23,21 +23,33 @@ module.exports = {
 
     if (queue.songs.length > 1 || queue.autoplay) {
       await queue.skip();
-      return interaction.editReply({ embeds: [statusEmbed(colors.info, "⏩ | Skipped!")] });
+      return interaction.editReply({
+        embeds: [statusEmbed(colors.info, "⏩ | Skipped!")],
+      });
     }
 
     // Last song in the queue: with "Repeat song list" on, loop back to its start.
     if (queue.repeatMode === RepeatMode.QUEUE) {
       await queue.seek(0);
       return interaction.editReply({
-        embeds: [statusEmbed(colors.info, "🔁 | Skipped! Starting the playlist again.")],
+        embeds: [
+          statusEmbed(
+            colors.info,
+            "🔁 | Skipped! Starting the playlist again.",
+          ),
+        ],
       });
     }
 
     await queue.stop();
     client.distube.voices.leave(interaction.guildId);
     await interaction.editReply({
-      embeds: [statusEmbed(colors.info, "⏹️ | That was the last song, so I stopped playing.")],
+      embeds: [
+        statusEmbed(
+          colors.info,
+          "⏹️ | That was the last song, so I stopped playing.",
+        ),
+      ],
     });
   },
 };
