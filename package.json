@@ -9,7 +9,8 @@
   "scripts": {
     "start": "node src/bot.js",
     "dev": "nodemon src/bot.js",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "check": "eslint . && node scripts/check.js"
   },
   "keywords": [],
   "author": "",

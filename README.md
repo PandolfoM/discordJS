@@ -8,6 +8,7 @@
     - [Tutorial](https://phoenixnap.com/kb/ffmpeg-windows)
   - Linux
     - sudo apt install ffmpeg
+- `npm run check` to verify the setup (lint, commands, events, `.env`) without connecting to Discord
 - `npm start`
 
 ## Configuration (`.env`)
