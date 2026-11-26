@@ -1,5 +1,4 @@
 const { ActivityType, Events } = require("discord.js");
-const { startWebscraper } = require("../functions/webscraper");
 
 const PRESENCE_INTERVAL_MS = 60 * 1000;
 const PRESENCES = [
@@ -20,7 +19,6 @@ module.exports = {
     setRandomPresence();
     setInterval(setRandomPresence, PRESENCE_INTERVAL_MS);
 
-    startWebscraper(client);
     console.log(`Ready! Logged in as ${client.user.tag}`);
   },
 };

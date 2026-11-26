@@ -21,7 +21,6 @@ module.exports.client = client;
 client.commands = new Collection();
 client.snipes = new Collection();
 
-require("./db");
 require("./distube");
 const loadEvents = require("./functions/handleEvents");
 const loadCommands = require("./functions/handleCommands");

@@ -1,7 +1,6 @@
 const { MessageFlags } = require("discord.js");
 const colors = require("../config/colors");
 const { noDjEmbed, statusEmbed } = require("../config/embeds");
-const { getGuildSettings } = require("../db/guildSettings");
 
 const replyError = (interaction, description) =>
   interaction.reply({
@@ -35,9 +34,17 @@ async function ensureVoice(interaction, client, { requireQueue = true } = {}) {
   return { voiceChannel, queue };
 }
 
-/** Checks music channel + DJ role settings. Replies and returns false if denied. */
+/**
+ * Checks the music channel + DJ role from .env (MUSIC_CHANNEL_ID, DEV_CHANNEL_ID,
+ * DJ_ROLE_ID; leave one unset to disable that restriction). Replies and returns
+ * false if denied.
+ */
 async function hasDJ(interaction) {
-  const { devChannel, musicChannel, djRole } = getGuildSettings(interaction.guildId);
+  const {
+    DEV_CHANNEL_ID: devChannel,
+    MUSIC_CHANNEL_ID: musicChannel,
+    DJ_ROLE_ID: djRole,
+  } = process.env;
 
   const inAllowedChannel =
     !musicChannel || [devChannel, musicChannel].includes(interaction.channelId);

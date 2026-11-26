@@ -1,4 +1,3 @@
-const axios = require("axios");
 const {
   SlashCommandBuilder,
   PermissionFlagsBits,
@@ -25,7 +24,13 @@ function getEmoteIdFromUrl(url) {
 
 /** Largest file under Discord's size limit, preferring GIF for animated emotes. */
 async function getEmoteData(id) {
-  const { data } = await axios.get(`https://7tv.io/v3/emotes/${id}`, { timeout: 10_000 });
+  const res = await fetch(`https://7tv.io/v3/emotes/${encodeURIComponent(id)}`, {
+    signal: AbortSignal.timeout(10_000),
+  });
+  if (!res.ok) {
+    throw new Error(`7TV API returned ${res.status} for emote ${id}`);
+  }
+  const data = await res.json();
   const format = data.animated ? "GIF" : "PNG";
   const files = (data.host?.files ?? data.versions?.[0]?.host?.files ?? []).filter(
     (file) => file.format === format && file.size < MAX_EMOJI_BYTES,
