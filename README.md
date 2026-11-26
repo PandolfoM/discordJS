@@ -23,5 +23,6 @@
 | `MUSIC_CHANNEL_ID`                         | `/play` only works in this channel (optional)          |
 | `DEV_CHANNEL_ID`                           | `/play` also works here, for testing (optional)        |
 | `DJ_ROLE_ID`                               | Only members with this role can use `/play` (optional) |
+| `FFMPEG_PATH`                              | Use this ffmpeg instead of the bundled one (optional)  |
 
 Leave an optional variable unset to turn that restriction off. Restart the bot after changing `.env`.
