@@ -1,5 +1,7 @@
-const { EmbedBuilder, SlashCommandBuilder } = require("discord.js");
+const { SlashCommandBuilder, InteractionContextType } = require("discord.js");
 const colors = require("../../config/colors");
+const { statusEmbed } = require("../../config/embeds");
+const { ensureVoice } = require("../../utils/musicUtils");
 
 module.exports = {
   category: "Music",
@@ -10,60 +12,26 @@ module.exports = {
       option
         .setName("volume")
         .setDescription("Volume percent")
-        .setMaxValue(200)
         .setMinValue(0)
-        .setRequired(true)
-    ),
+        .setMaxValue(200)
+        .setRequired(true),
+    )
+    .setContexts(InteractionContextType.Guild),
 
   async execute(interaction, client) {
+    const voice = await ensureVoice(interaction, client);
+    if (!voice) {
+      return;
+    }
+
     const volume = interaction.options.getInteger("volume");
-    const voiceChannel = interaction.member.voice.channel;
-    const queue = await client.distube.getQueue(interaction);
-    if (!voiceChannel) {
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.error)
-            .setDescription(
-              `🚫 | You must be in a voice channel to use this command!`
-            ),
-        ],
-      });
-    }
-    if (
-      interaction.guild.members.me.voice.channelId !==
-      interaction.member.voice.channelId
-    ) {
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.error)
-            .setDescription(
-              `🚫 | You need to be on the same voice channel as the Bot!`
-            ),
-        ],
-      });
-    }
-
-    if (volume < 0 || volume > 200) {
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.error)
-            .setDescription(`🚫 | The volume value must be from 0 to 200!`),
-        ],
-        ephemeral: true,
-      });
-    }
-
-    queue.setVolume(volume);
+    voice.queue.setVolume(volume);
     await interaction.reply({
       embeds: [
-        new EmbedBuilder()
-          .setColor(colors.success)
-          .setDescription(
-            `✅ | The volume has been changed to: ${volume}%/200%`
-          ),
+        statusEmbed(
+          colors.success,
+          `✅ | The volume has been changed to: ${volume}%/200%`,
+        ),
       ],
     });
   },

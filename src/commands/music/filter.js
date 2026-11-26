@@ -1,6 +1,17 @@
-const { EmbedBuilder } = require("discord.js");
-const { SlashCommandBuilder } = require("discord.js");
+const { SlashCommandBuilder, InteractionContextType } = require("discord.js");
 const colors = require("../../config/colors");
+const { statusEmbed } = require("../../config/embeds");
+const { ensureVoice } = require("../../utils/musicUtils");
+
+const FILTERS = [
+  "off",
+  "3d",
+  "bassboost",
+  "echo",
+  "karaoke",
+  "nightcore",
+  "surround",
+];
 
 module.exports = {
   category: "Music",
@@ -12,82 +23,33 @@ module.exports = {
         .setName("type")
         .setDescription("Select filter type")
         .setRequired(true)
-        .setAutocomplete(true)
-    ),
+        .addChoices(
+          ...FILTERS.map((filter) => ({ name: filter, value: filter })),
+        ),
+    )
+    .setContexts(InteractionContextType.Guild),
 
-  async autocomplete(interaction) {
-    const focusedValue = interaction.options.getFocused();
-    const choices = [
-      "off",
-      "3d",
-      "bassboost",
-      "echo",
-      "karaoke",
-      "nightcore",
-      "surround",
-    ];
-    const filtered = choices.filter((choice) =>
-      choice.startsWith(focusedValue)
-    );
-    await interaction.respond(
-      filtered.map((choice) => ({ name: choice, value: choice }))
-    );
-  },
   async execute(interaction, client) {
+    const voice = await ensureVoice(interaction, client);
+    if (!voice) {
+      return;
+    }
+
     const filter = interaction.options.getString("type");
-    const voiceChannel = interaction.member.voice.channel;
-    const queue = await client.distube.getQueue(interaction);
-
-    if (!voiceChannel) {
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.error)
-            .setDescription(
-              `🚫 | You must be in a voice channel to use this command!`
-            ),
-        ],
-      });
-    }
-
-    if (
-      interaction.guild.members.me.voice.channelId !==
-      interaction.member.voice.channelId
-    ) {
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.error)
-            .setDescription(
-              `🚫 | You need to be on the same voice channel as the Bot!`
-            ),
-        ],
-      });
-    }
-
-    if (!filter) {
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.error)
-            .setDescription(`🚫 | No filter selected!`),
-        ],
-        ephemeral: true,
-      });
-    }
-
     if (filter === "off") {
-      queue.filters.clear();
+      voice.queue.filters.clear();
     } else {
-      queue.filters.clear();
-      queue.filters.add(filter);
+      voice.queue.filters.set([filter]);
     }
 
-    interaction.reply({
+    await interaction.reply({
       embeds: [
-        new EmbedBuilder()
-          .setColor(colors.success)
-          .setDescription(`Filter \`${filter}\` has been added to the audio!`),
+        statusEmbed(
+          colors.success,
+          filter === "off"
+            ? "Filters have been removed!"
+            : `Filter \`${filter}\` has been added to the audio!`,
+        ),
       ],
     });
   },

@@ -1,43 +1,44 @@
-const { REST } = require("@discordjs/rest");
-const { Routes } = require("discord-api-types/v9");
-const fs = require("fs");
-require("dotenv").config();
+const fs = require("node:fs");
+const path = require("node:path");
+const { REST, Routes } = require("discord.js");
 
-module.exports = (client) => {
-  client.handleCommands = async (commandFolders, path) => {
-    client.commandArray = [];
-    for (const folder of commandFolders) {
-      const commandFiles = fs
-        .readdirSync(`${path}/${folder}`)
-        .filter((file) => file.endsWith(".js"));
-      for (const file of commandFiles) {
-        const command = require(`../commands/${folder}/${file}`);
-        // Set a new item in the Collection
-        // With the key as the command name and the value as the exported module
-        client.commands.set(command.data.name, command);
-        client.commandArray.push(command.data.toJSON());
-      }
-    }
-    const rest = new REST({ version: "9" }).setToken(process.env.TOKEN);
+module.exports = async (client, commandsDir) => {
+  const body = [];
+  const folders = fs
+    .readdirSync(commandsDir, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory());
 
-    (async () => {
-      try {
-        console.log("Started refreshing application (/) commands.");
+  for (const folder of folders) {
+    const folderPath = path.join(commandsDir, folder.name);
+    const files = fs
+      .readdirSync(folderPath)
+      .filter((file) => file.endsWith(".js"));
 
-        await rest.put(
-          Routes.applicationGuildCommands(
-            process.env.CLIENTID,
-            process.env.GUILDID
-          ),
-          {
-            body: client.commandArray,
-          }
+    for (const file of files) {
+      const command = require(path.join(folderPath, file));
+      if (!command.data || !command.execute) {
+        console.warn(
+          `Skipping ${folder.name}/${file}: missing data or execute`,
         );
-
-        console.log("Successfully reloaded application (/) commands.");
-      } catch (error) {
-        console.error(error);
+        continue;
       }
-    })();
-  };
+      client.commands.set(command.data.name, command);
+      body.push(command.data.toJSON());
+    }
+  }
+
+  const rest = new REST().setToken(process.env.TOKEN);
+  try {
+    console.log(`Refreshing ${body.length} application (/) commands...`);
+    await rest.put(
+      Routes.applicationGuildCommands(
+        process.env.CLIENTID,
+        process.env.GUILDID,
+      ),
+      { body },
+    );
+    console.log("Successfully reloaded application (/) commands.");
+  } catch (error) {
+    console.error("Failed to register application commands:", error);
+  }
 };

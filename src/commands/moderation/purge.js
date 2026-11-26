@@ -2,6 +2,8 @@ const {
   SlashCommandBuilder,
   EmbedBuilder,
   PermissionFlagsBits,
+  InteractionContextType,
+  MessageFlags,
 } = require("discord.js");
 const { errorEmbed } = require("../../config/embeds");
 const colors = require("../../config/colors");
@@ -13,38 +15,35 @@ module.exports = {
     .addIntegerOption((option) =>
       option
         .setName("amount")
-        .setDescription("Number of messages to delete")
-        .setRequired(true)
+        .setDescription("Number of messages to delete (1-100)")
+        .setMinValue(1)
+        .setMaxValue(100)
+        .setRequired(true),
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
-    .setDMPermission(false),
+    .setContexts(InteractionContextType.Guild),
   async execute(interaction) {
     const amount = interaction.options.getInteger("amount");
 
-    const validNumber = new EmbedBuilder()
-      .setColor(colors.info)
-      .setTitle("Provide a number between 1 and 100.");
-
-    if (amount <= 0 || amount > 100) {
-      return interaction.reply({ embeds: [validNumber], ephemeral: true });
-    }
-
     try {
-      const fetched = await interaction.channel.messages.fetch({
-        limit: amount,
+      // `true` skips messages older than 14 days, which Discord can't bulk delete.
+      const deleted = await interaction.channel.bulkDelete(amount, true);
+      const skipped = amount - deleted.size;
+      let title = `Successfully deleted ${deleted.size} message${deleted.size === 1 ? "" : "s"}.`;
+      if (skipped > 0) {
+        title += ` (${skipped} older than 14 days were skipped)`;
+      }
+
+      await interaction.reply({
+        embeds: [new EmbedBuilder().setColor(colors.success).setTitle(title)],
+        flags: MessageFlags.Ephemeral,
       });
-      interaction.channel.bulkDelete(fetched);
-
-      const embed = new EmbedBuilder()
-        .setColor(colors.success)
-        .setTitle(
-          `Successfully deleted ${amount} message${amount > 1 ? "s" : ""}.`
-        );
-
-      interaction.reply({ embeds: [embed], ephemeral: true });
     } catch (error) {
       console.error("Error while purging messages:", error);
-      interaction.reply({ embeds: [errorEmbed], ephemeral: true });
+      await interaction.reply({
+        embeds: [errorEmbed],
+        flags: MessageFlags.Ephemeral,
+      });
     }
   },
 };

@@ -1,59 +1,55 @@
-const { EmbedBuilder, SlashCommandBuilder } = require("discord.js");
+const { SlashCommandBuilder, InteractionContextType } = require("discord.js");
+const { RepeatMode } = require("distube");
 const colors = require("../../config/colors");
+const { statusEmbed } = require("../../config/embeds");
+const { ensureVoice } = require("../../utils/musicUtils");
 
 module.exports = {
   category: "Music",
-  data: new SlashCommandBuilder().setName("skip").setDescription("Skip track"),
+  data: new SlashCommandBuilder()
+    .setName("skip")
+    .setDescription("Skip track")
+    .setContexts(InteractionContextType.Guild),
 
   async execute(interaction, client) {
-    const voiceChannel = interaction.member.voice.channel;
-    const queue = await client.distube.getQueue(interaction);
-    if (!voiceChannel) {
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.error)
-            .setDescription(
-              `🚫 | You must be in a voice channel to use this command!`
-            ),
-        ],
+    const voice = await ensureVoice(interaction, client);
+    if (!voice) {
+      return;
+    }
+    const { queue } = voice;
+
+    // DisTube waits for any song that's still loading, which can exceed 3s.
+    await interaction.deferReply();
+
+    if (queue.songs.length > 1 || queue.autoplay) {
+      await queue.skip();
+      return interaction.editReply({
+        embeds: [statusEmbed(colors.info, "⏩ | Skipped!")],
       });
     }
-    if (
-      interaction.guild.members.me.voice.channelId !==
-      interaction.member.voice.channelId
-    ) {
-      return interaction.reply({
+
+    // Last song in the queue: with "Repeat song list" on, loop back to its start.
+    if (queue.repeatMode === RepeatMode.QUEUE) {
+      await queue.seek(0);
+      return interaction.editReply({
         embeds: [
-          new EmbedBuilder()
-            .setColor(colors.error)
-            .setDescription(
-              `🚫 | You need to be on the same voice channel as the Bot!`
-            ),
+          statusEmbed(
+            colors.info,
+            "🔁 | Skipped! Starting the playlist again.",
+          ),
         ],
       });
     }
 
-    if (queue.songs.length === 1) {
-      queue.stop();
-      client.distube.voices.leave(interaction);
-      await interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.error)
-            .setDescription(`🚫 | There are no more songs in the queue!`),
-        ],
-      });
-      return;
-    } else {
-      queue.skip();
-      await interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.info)
-            .setDescription(`⏩ | Skipped!`),
-        ],
-      });
-    }
+    await queue.stop();
+    client.distube.voices.leave(interaction.guildId);
+    await interaction.editReply({
+      embeds: [
+        statusEmbed(
+          colors.info,
+          "⏹️ | That was the last song, so I stopped playing.",
+        ),
+      ],
+    });
   },
 };

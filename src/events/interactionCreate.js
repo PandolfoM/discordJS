@@ -1,54 +1,46 @@
+const { Events, MessageFlags } = require("discord.js");
+const { errorEmbed } = require("../config/embeds");
+
 module.exports = {
-  name: "interactionCreate",
+  name: Events.InteractionCreate,
   async execute(interaction, client) {
-    // if (!interaction.isCommand()) return;
-
-    const command = client.commands.get(interaction.commandName);
-
-    if (!command) return;
-
-    // try {
-    //   await command.execute(interaction, client);
-    // } catch (error) {
-    //   console.error(error);
-    //   return await interaction.reply({
-    //     content: "There was an error while executing this command!",
-    //     ephemeral: true,
-    //   });
-    // }
-
-    if (interaction.isAutocomplete()) {
-      if (!command.autocomplete) {
-        return console.error(
-          `No autocomplete handler was found for the ${interaction.commandName} command.`
-        );
-      }
-
-      try {
-        await command.autocomplete(interaction);
-      } catch (error) {
-        console.error(error);
-        return await interaction.reply({
-          content:
-            "There was an error while executing this autocomplete command!",
-          ephemeral: true,
-        });
-      }
+    if (!interaction.isChatInputCommand() && !interaction.isAutocomplete()) {
+      return;
     }
 
-    if (interaction.isCommand()) {
-      // const command = client.commands.get(interaction.commandName);
+    const command = client.commands.get(interaction.commandName);
+    if (!command) {
+      console.error(
+        `No command matching "${interaction.commandName}" was found.`,
+      );
+      return;
+    }
 
-      // if (!command) return console.log("Command was not found");
-
+    if (interaction.isAutocomplete()) {
       try {
-        await command.execute(interaction, client);
+        await command.autocomplete?.(interaction);
       } catch (error) {
-        console.error(error);
-        return await interaction.reply({
-          content: "There was an error while executing this command!",
-          ephemeral: true,
-        });
+        console.error(
+          `Autocomplete error in /${interaction.commandName}:`,
+          error,
+        );
+      }
+      return;
+    }
+
+    try {
+      await command.execute(interaction, client);
+    } catch (error) {
+      console.error(`Error executing /${interaction.commandName}:`, error);
+      const payload = { embeds: [errorEmbed], flags: MessageFlags.Ephemeral };
+      try {
+        if (interaction.replied || interaction.deferred) {
+          await interaction.followUp(payload);
+        } else {
+          await interaction.reply(payload);
+        }
+      } catch (replyError) {
+        console.error("Failed to send error response:", replyError);
       }
     }
   },
