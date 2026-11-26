@@ -1,15 +1,13 @@
-const { SlashCommandBuilder } = require("@discordjs/builders");
+const path = require("node:path");
+const { SlashCommandBuilder } = require("discord.js");
+
+const IMAGE = path.join(__dirname, "../../content/img/swtier.png");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("swtier")
     .setDescription("Star Wars Tier List"),
   async execute(interaction) {
-    const attachment = "./src/content/img/swtier2.png";
-    try {
-      await interaction.reply({ files: [attachment] });
-    } catch (error) {
-      return error;
-    }
+    await interaction.reply({ files: [IMAGE] });
   },
 };

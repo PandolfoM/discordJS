@@ -1,11 +1,13 @@
-const { SlashCommandBuilder } = require("@discordjs/builders");
+const path = require("node:path");
+const { SlashCommandBuilder } = require("discord.js");
+
+const VIDEO = path.join(__dirname, "../../content/video/nicksturdy.mov");
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("defaultdance")
     .setDescription("Default dance"),
   async execute(interaction) {
-    const attachment = "./src/content/video/nicksturdy.mov";
-    await interaction.reply({ files: [attachment] });
+    await interaction.reply({ files: [VIDEO] });
   },
 };

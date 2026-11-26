@@ -1,24 +1,23 @@
-const { DisTube } = require("distube");
-const { client } = require("../bot");
-const { EmbedBuilder } = require("discord.js");
+const { DisTube, RepeatMode } = require("distube");
+const { EmbedBuilder, Events } = require("discord.js");
 const { SpotifyPlugin } = require("@distube/spotify");
-// const { SoundCloudPlugin } = require("@distube/soundcloud");
 const { YouTubePlugin } = require("@distube/youtube");
 const { AppleMusicPlugin } = require("distube-apple-music");
-const colors = require("../config/colors");
 const ffmpegPath = require("ffmpeg-static");
-require("dotenv").config();
+const { client } = require("../bot");
+const colors = require("../config/colors");
+const { statusEmbed } = require("../config/embeds");
 
-const Format = Intl.NumberFormat();
+const DEFAULT_VOLUME = 20;
+const IDLE_LEAVE_MS = 60 * 1000;
+const formatNumber = new Intl.NumberFormat();
 
 client.distube = new DisTube(client, {
-  ffmpeg: {
-    path: ffmpegPath,
-    args: ["-loglevel", "debug"],
-  },
+  ffmpeg: { path: ffmpegPath },
   nsfw: true,
   emitNewSongOnly: true,
-  emitAddSongWhenCreatingQueue: true,
+  // "Now playing" already announces the first song of a new queue.
+  emitAddSongWhenCreatingQueue: false,
   emitAddListWhenCreatingQueue: true,
   plugins: [
     new YouTubePlugin(),
@@ -29,172 +28,175 @@ client.distube = new DisTube(client, {
         topTracksCountry: "US",
       },
     }),
-    // new SoundCloudPlugin({
-    //   clientId: "YHtBnq6bxM7DhJkIfzrGq3gYrueyLDMM",
-    //   oauthToken: "2-298185-348416357-ctOyOPf3yk10Yd",
-    // }),
     new AppleMusicPlugin(),
   ],
 });
 
+const send = (queue, embed) =>
+  queue.textChannel?.send({ embeds: [embed] }).catch((error) => {
+    console.error("Failed to send DisTube message:", error);
+  });
+
+const queueFooter = (queue) => ({
+  text: `${formatNumber.format(queue.songs.length)} songs in queue`,
+});
+
+const REPEAT_LABELS = {
+  [RepeatMode.DISABLED]: "Off",
+  [RepeatMode.SONG]: "Song",
+  [RepeatMode.QUEUE]: "Playlist",
+};
+
 const status = (queue) =>
   `Volume: \`${queue.volume}%\` | Filter: \`${
     queue.filters.names.join(", ") || "Off"
-  }\` | Repeat: \`${
-    queue.repeatMode ? (queue.repeatMode === 2 ? "Playlist" : "Song") : "Off"
-  }\` | Autoplay: \`${queue.autoplay ? "On" : "Off"}\``;
+  }\` | Repeat: \`${REPEAT_LABELS[queue.repeatMode]}\` | Autoplay: \`${
+    queue.autoplay ? "On" : "Off"
+  }\``;
 
-client.distube.on("addSong", async (queue, song) => {
-  await queue.textChannel.send({
-    embeds: [
+// --- Leaving idle voice channels -------------------------------------------
+// DisTube 5 no longer leaves on its own, so leave after IDLE_LEAVE_MS when the
+// channel has no people in it or nothing is queued.
+
+const idleTimers = new Map();
+
+const hasListeners = (channel) =>
+  channel?.members.some((member) => !member.user.bot) ?? false;
+
+function cancelIdleLeave(guildId) {
+  clearTimeout(idleTimers.get(guildId));
+  idleTimers.delete(guildId);
+}
+
+function scheduleIdleLeave(guildId) {
+  if (idleTimers.has(guildId)) {
+    return;
+  }
+  idleTimers.set(
+    guildId,
+    setTimeout(async () => {
+      idleTimers.delete(guildId);
+      const voice = client.distube.voices.get(guildId);
+      const queue = client.distube.getQueue(guildId);
+      const empty = !hasListeners(voice?.channel);
+      if (!voice || (queue && !empty)) {
+        return;
+      }
+
+      try {
+        if (queue) {
+          await queue.stop();
+          send(
+            queue,
+            statusEmbed(
+              colors.info,
+              "👋 | Left the voice channel because everyone left.",
+            ),
+          );
+        }
+        voice.leave();
+      } catch (error) {
+        console.error("Failed to leave idle voice channel:", error);
+      }
+    }, IDLE_LEAVE_MS),
+  );
+}
+
+client.on(Events.VoiceStateUpdate, (oldState, newState) => {
+  const guildId = newState.guild.id;
+  const voice = client.distube.voices.get(guildId);
+  if (!voice) {
+    cancelIdleLeave(guildId);
+  } else if (!hasListeners(voice.channel)) {
+    scheduleIdleLeave(guildId);
+  } else if (client.distube.getQueue(guildId)) {
+    cancelIdleLeave(guildId);
+  }
+});
+
+// --- DisTube events --------------------------------------------------------
+
+client.distube
+  .on("initQueue", (queue) => {
+    queue.autoplay = false;
+    queue.setVolume(DEFAULT_VOLUME);
+  })
+  .on("addSong", (queue, song) =>
+    send(
+      queue,
       new EmbedBuilder()
         .setColor(colors.info)
-        .setAuthor({
-          name: "Added song to queue",
-        })
+        .setAuthor({ name: "Added song to queue" })
         .setDescription(`> [**${song.name}**](${song.url})`)
-        .setThumbnail(song.thumbnail)
-        .addFields([
-          {
-            name: "🎵 By",
-            value: song.uploader.name,
-            inline: false,
-          },
-          {
-            name: "👌 Request by",
-            value: `${song.user}`,
-            inline: false,
-          },
-        ])
-        .setFooter({
-          text: `${Format.format(queue.songs.length)} songs in queue`,
-        }),
-    ],
-  });
-});
-
-client.distube.on("addList", async (queue, playlist) => {
-  await queue.textChannel.send({
-    embeds: [
+        .setThumbnail(song.thumbnail ?? null)
+        .addFields(
+          { name: "🎵 By", value: song.uploader?.name || "Unknown" },
+          { name: "👌 Request by", value: `${song.user ?? "Unknown"}` },
+        )
+        .setFooter(queueFooter(queue)),
+    ),
+  )
+  .on("addList", (queue, playlist) =>
+    send(
+      queue,
       new EmbedBuilder()
         .setColor(colors.info)
-        .setAuthor({
-          name: "Add playlist to queue",
+        .setAuthor({ name: "Added playlist to queue" })
+        .setThumbnail(playlist.thumbnail ?? null)
+        .setDescription(
+          `> [**${playlist.name}**](${playlist.url}) (${playlist.songs.length} songs)`,
+        )
+        .addFields({
+          name: "👌 | Request by",
+          value: `${playlist.user ?? "Unknown"}`,
         })
-        .setThumbnail(playlist.thumbnail)
-        .setDescription(`> [**${playlist.name}**](${playlist.url})`)
-        .addFields([
-          {
-            name: "👌 | Request by",
-            value: `${playlist.user}`,
-            inline: false,
-          },
-        ])
-        .setFooter({
-          text: `${Format.format(queue.songs.length)} songs in queue`,
-        }),
-    ],
-  });
-});
-
-client.distube.on("playSong", async (queue, song) => {
-  await queue.textChannel.send({
-    embeds: [
+        .setFooter(queueFooter(queue)),
+    ),
+  )
+  .on("playSong", (queue, song) => {
+    cancelIdleLeave(queue.id);
+    send(
+      queue,
       new EmbedBuilder()
         .setColor(colors.success)
-        .setAuthor({
-          name: "Now playing",
-        })
-        .setDescription(`> [**${song.name}**](${song.url})`)
-        .setThumbnail(song.thumbnail)
-        .addFields([
-          {
-            name: "🔷 | Status",
-            value: `${status(queue).toString()}`,
-            inline: false,
-          },
-          {
-            name: "👌 | Request by",
-            value: `${song.user}`,
-            inline: false,
-          },
-          //           {
-          //             name: "📻 | Play music at",
-          //             value: `
-          // ┕🔊 | ${client.channels.cache.get(queue.voiceChannel.id)}
-          // ┕🪄 | ${queue.voiceChannel.bitrate / 1000}  kbps`,
-          //             inline: false,
-          //           },
-        ])
-        .setFooter({
-          text: `${Format.format(queue.songs.length)} songs in queue`,
-        }),
-    ],
-  });
-});
-
-client.distube.on("empty", async (queue) => {
-  await queue.textChannel.send({
-    embeds: [
-      new EmbedBuilder()
-        .setColor(colors.error)
+        .setAuthor({ name: "Now playing" })
         .setDescription(
-          `🚫 | The room is empty, the bot automatically leaves the room!`
+          `> [**${song.name}**](${song.url}) \`${song.formattedDuration}\``,
+        )
+        .setThumbnail(song.thumbnail ?? null)
+        .addFields(
+          { name: "🔷 | Status", value: status(queue) },
+          { name: "👌 | Request by", value: `${song.user ?? "Unknown"}` },
+        )
+        .setFooter(queueFooter(queue)),
+    );
+  })
+  .on("error", (error, queue) => {
+    console.error("DisTube error:", error);
+    if (queue) {
+      send(
+        queue,
+        statusEmbed(
+          colors.error,
+          `🚫 | An error has occurred!\n\n**${String(error).slice(0, 1974)}**`,
         ),
-    ],
-  });
-});
-
-client.distube.on("error", async (error, channel) => {
-  const channelId = client.channels.cache.get(channel.textChannel.id);
-  await channelId.send({
-    embeds: [
-      new EmbedBuilder()
-        .setColor(colors.error)
-        .setDescription(
-          `🚫 | An error has occurred!\n\n** ${error
-            .toString()
-            .slice(0, 1974)}**`
-        ),
-    ],
-  });
-});
-
-client.distube.on("disconnect", async (queue) => {
-  await queue.textChannel.send({
-    embeds: [
-      new EmbedBuilder()
-        .setColor(colors.error)
-        .setDescription(
-          `🚫 | The bot has disconnected from the voice channel!`
-        ),
-    ],
-  });
-});
-
-client.distube.on("finish", async (queue) => {
-  queue.stop();
-  await queue.textChannel.send({
-    embeds: [
-      new EmbedBuilder()
-        .setColor(colors.error)
-        .setDescription(`🚫 | All songs on the playlist have been played!`),
-    ],
-  });
-});
-
-client.distube.on("initQueue", async (queue) => {
-  queue.autoplay = false;
-  queue.volume = 20;
-});
-
-client.distube.on("noRelated", async (queue) => {
-  await queue.textChannel.send({
-    embeds: [
-      new EmbedBuilder()
-        .setColor(colors.error)
-        .setDescription(`🚫 | Song not found!`),
-    ],
-    ephemeral: true,
-  });
-});
+      );
+    }
+  })
+  .on("disconnect", (queue) => {
+    cancelIdleLeave(queue.id);
+    send(
+      queue,
+      statusEmbed(colors.info, "👋 | Disconnected from the voice channel."),
+    );
+  })
+  .on("finish", (queue) => {
+    scheduleIdleLeave(queue.id);
+    send(
+      queue,
+      statusEmbed(colors.info, "✅ | Queue finished! Use /play to add more."),
+    );
+  })
+  .on("noRelated", (queue) =>
+    send(queue, statusEmbed(colors.error, "🚫 | Song not found!")),
+  );

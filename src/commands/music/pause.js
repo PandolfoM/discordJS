@@ -1,53 +1,36 @@
-const { EmbedBuilder } = require("discord.js");
-const { SlashCommandBuilder } = require("discord.js");
+const {
+  EmbedBuilder,
+  SlashCommandBuilder,
+  InteractionContextType,
+} = require("discord.js");
 const colors = require("../../config/colors");
+const { ensureVoice, replyError } = require("../../utils/musicUtils");
 
 module.exports = {
   category: "Music",
   data: new SlashCommandBuilder()
     .setName("pause")
-    .setDescription("Pause the current track"),
+    .setDescription("Pause the current track")
+    .setContexts(InteractionContextType.Guild),
 
   async execute(interaction, client) {
-    const voiceChannel = interaction.member.voice.channel;
-    const queue = await client.distube.getQueue(interaction);
-
-    if (!voiceChannel) {
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.error)
-            .setDescription(
-              `🚫 | You must be in a voice channel to use this command!`
-            ),
-        ],
-      });
+    const voice = await ensureVoice(interaction, client);
+    if (!voice) {
+      return;
     }
-    if (
-      interaction.guild.members.me.voice.channelId !==
-      interaction.member.voice.channelId
-    ) {
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.error)
-            .setDescription(
-              `🚫 | You need to be on the same voice channel as the Bot!`
-            ),
-        ],
-      });
+    if (voice.queue.paused) {
+      return replyError(interaction, "The song is already paused!");
     }
 
-    queue.pause();
-    await interaction.reply({
+    // DisTube waits for any song that's still loading, which can exceed 3s.
+    await interaction.deferReply();
+    await voice.queue.pause();
+    await interaction.editReply({
       embeds: [
         new EmbedBuilder()
           .setColor(colors.info)
-          .setAuthor({
-            name: "Pause",
-            iconURL: client.user.displayAvatarURL(),
-          })
-          .setDescription(`⏸️ | Paused current song!`),
+          .setAuthor({ name: "Pause", iconURL: client.user.displayAvatarURL() })
+          .setDescription("⏸️ | Paused current song!"),
       ],
     });
   },

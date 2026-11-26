@@ -1,15 +1,16 @@
-const { SlashCommandBuilder } = require("@discordjs/builders");
+const { SlashCommandBuilder, PermissionFlagsBits } = require("discord.js");
 const { OpenAI } = require("openai");
 const { errorEmbed } = require("../../config/embeds");
 const colors = require("../../config/colors");
-const { PermissionFlagsBits } = require("discord.js");
-require("dotenv").config();
+const logger = require("../../utils/logger");
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_KEY,
-});
+const MODEL = "gpt-5-nano";
+const MAX_MESSAGE_LENGTH = 2000;
 
-// const openai = new OpenAIApi(config);
+// Created lazily so a missing key doesn't crash the bot at startup.
+let openai;
+const getOpenAI = () =>
+  (openai ??= new OpenAI({ apiKey: process.env.OPENAI_KEY }));
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -19,52 +20,42 @@ module.exports = {
       option
         .setName("prompt")
         .setDescription("Prompt to ask OpenAI")
-        .setRequired(true)
+        .setRequired(true),
     )
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator),
   async execute(interaction) {
-    const question = interaction.options.getString("prompt");
-
-    const prompt = `
-      Question: ${question}\n
-      Epicans:
-    `;
+    const prompt = interaction.options.getString("prompt");
+    await interaction.deferReply();
 
     try {
-      await interaction.reply({
-        embeds: [
+      const completion = await getOpenAI().chat.completions.create({
+        model: MODEL,
+        messages: [
           {
-            color: colors.info,
-            title: "One moment...",
+            role: "system",
+            content:
+              "You are Epicans, a friendly Discord bot. Keep answers short.",
           },
+          { role: "user", content: prompt },
         ],
       });
 
-      const response = await openai.chat.completions.create({
-        prompt,
-        model: "gpt-3.5-turbo",
-        // max_tokens: 500,
-        // temperature: 0.7,
-        // top_p: 1,
-        // frequency_penalty: 0,
-        // presence_penalty: 0,
-        stop: ["\n"],
-      });
-      const text = response.data.choices[0].text.substring(0);
-
-      return await interaction.editReply(String(text));
-    } catch (e) {
-      if (OpenAI.RateLimitError) {
+      const text =
+        completion.choices[0]?.message?.content?.trim() ||
+        "I have nothing to say.";
+      await interaction.editReply(
+        text.length > MAX_MESSAGE_LENGTH
+          ? `${text.slice(0, MAX_MESSAGE_LENGTH - 3)}...`
+          : text,
+      );
+    } catch (error) {
+      if (error instanceof OpenAI.RateLimitError) {
         return interaction.editReply({
-          embeds: [
-            {
-              color: colors.error,
-              title: "Rate limit exceeded!",
-            },
-          ],
+          embeds: [{ color: colors.error, title: "Rate limit exceeded!" }],
         });
       }
-      return await interaction.editReply({ embeds: [errorEmbed] });
+      logger(error);
+      await interaction.editReply({ embeds: [errorEmbed] });
     }
   },
 };

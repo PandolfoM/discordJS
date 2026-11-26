@@ -1,43 +1,34 @@
+require("dotenv").config({ quiet: true });
+
+const path = require("node:path");
 const { Client, Collection, GatewayIntentBits } = require("discord.js");
-const fs = require("fs");
+
 const client = new Client({
   intents: [
     GatewayIntentBits.Guilds,
     GatewayIntentBits.GuildMessages,
     GatewayIntentBits.MessageContent,
-    GatewayIntentBits.DirectMessages,
-    GatewayIntentBits.DirectMessageReactions,
-    GatewayIntentBits.DirectMessageTyping,
     GatewayIntentBits.GuildVoiceStates,
-    GatewayIntentBits.GuildEmojisAndStickers,
+    GatewayIntentBits.GuildExpressions,
     GatewayIntentBits.GuildMembers,
   ],
 });
 
+// Exported before anything else is required so modules that lazily
+// require("./bot") (logger, distube) get the client.
 module.exports.client = client;
 
 client.commands = new Collection();
 client.snipes = new Collection();
-client.player = new Collection();
-client.musicQueue = new Collection();
-client.settings = new Collection();
-require("./distube/index");
 
-require("dotenv").config();
+require("./distube");
+const loadEvents = require("./functions/handleEvents");
+const loadCommands = require("./functions/handleCommands");
 
-const functions = fs
-  .readdirSync("./src/functions")
-  .filter((file) => file.endsWith(".js"));
-const eventFiles = fs
-  .readdirSync("./src/events")
-  .filter((file) => file.endsWith(".js"));
-const commandsFolders = fs.readdirSync("./src/commands");
+process.on("unhandledRejection", (error) => {
+  console.error("Unhandled promise rejection:", error);
+});
 
-(async () => {
-  for (const file of functions) {
-    require(`./functions/${file}`)(client);
-  }
-  client.handleEvents(eventFiles, "./src/events");
-  client.handleCommands(commandsFolders, "./src/commands");
-  client.login(process.env.TOKEN);
-})();
+loadEvents(client, path.join(__dirname, "events"));
+loadCommands(client, path.join(__dirname, "commands"));
+client.login(process.env.TOKEN);

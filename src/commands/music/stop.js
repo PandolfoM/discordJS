@@ -1,61 +1,27 @@
-const { EmbedBuilder } = require("discord.js");
-const { SlashCommandBuilder } = require("@discordjs/builders");
+const { SlashCommandBuilder, InteractionContextType } = require("discord.js");
 const colors = require("../../config/colors");
+const { statusEmbed } = require("../../config/embeds");
+const { ensureVoice } = require("../../utils/musicUtils");
 
 module.exports = {
   category: "Music",
   data: new SlashCommandBuilder()
     .setName("stop")
-    .setDescription("Stop playing music"),
+    .setDescription("Stop playing music")
+    .setContexts(InteractionContextType.Guild),
 
   async execute(interaction, client) {
-    const voiceChannel = interaction.member.voice.channel;
-    const queue = await client.distube.getQueue(interaction);
-    if (!voiceChannel) {
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.error)
-            .setDescription(
-              `🚫 | You must be in a voice channel to use this command!`
-            ),
-        ],
-      });
-    }
-    if (
-      interaction.guild.members.me.voice.channelId !==
-      interaction.member.voice.channelId
-    ) {
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.error)
-            .setDescription(
-              `🚫 | You need to be on the same voice channel as the Bot!`
-            ),
-        ],
-      });
+    const voice = await ensureVoice(interaction, client);
+    if (!voice) {
+      return;
     }
 
-    if (!queue) {
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.error)
-            .setDescription(`🚫 | There is nothing playing!`),
-        ],
-        ephemeral: true,
-      });
-    }
-
-    queue.stop();
-    client.distube.voices.leave(interaction);
-    interaction.reply({
-      embeds: [
-        new EmbedBuilder()
-          .setColor(colors.info)
-          .setDescription(`🔇 | Stopped playing music!`),
-      ],
+    // DisTube waits for any song that's still loading, which can exceed 3s.
+    await interaction.deferReply();
+    await voice.queue.stop();
+    client.distube.voices.leave(interaction.guildId);
+    await interaction.editReply({
+      embeds: [statusEmbed(colors.info, "🔇 | Stopped playing music!")],
     });
   },
 };

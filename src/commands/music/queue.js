@@ -1,92 +1,79 @@
-const { EmbedBuilder, SlashCommandBuilder } = require("discord.js");
+const {
+  EmbedBuilder,
+  SlashCommandBuilder,
+  InteractionContextType,
+} = require("discord.js");
+const { RepeatMode } = require("distube");
 const colors = require("../../config/colors");
+const { ensureVoice } = require("../../utils/musicUtils");
+
+const UP_NEXT_COUNT = 10;
+const REPEAT_LABELS = {
+  [RepeatMode.DISABLED]: "Off",
+  [RepeatMode.SONG]: "Song",
+  [RepeatMode.QUEUE]: "Playlist",
+};
+
+const plural = (n) => (n === 1 ? "" : "s");
+const songLink = (song) => `[${song.name}](${song.url})`;
 
 module.exports = {
   category: "Music",
   data: new SlashCommandBuilder()
     .setName("queue")
-    .setDescription("See the list of songs in the queue!"),
+    .setDescription("See the list of songs in the queue!")
+    .setContexts(InteractionContextType.Guild),
 
   async execute(interaction, client) {
-    const voiceChannel = interaction.member.voice.channel;
-    const queue = await client.distube.getQueue(interaction);
-    if (!voiceChannel) {
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.error)
-            .setDescription(
-              `🚫 | You must be in a voice channel to use this command!`
-            ),
-        ],
-      });
+    // Anyone in the channel can look at the queue; only DJs can change it.
+    const voice = await ensureVoice(interaction, client, { requireDJ: false });
+    if (!voice) {
+      return;
     }
 
-    if (
-      interaction.guild.members.me.voice.channelId !==
-      interaction.member.voice.channelId
-    ) {
-      return interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.error)
-            .setDescription(
-              `🚫 | You need to be on the same voice channel as the Bot!`
-            ),
-        ],
-      });
+    const { queue } = voice;
+    const [current, ...upcoming] = queue.songs;
+
+    const nowPlaying =
+      `${songLink(current)}\n` +
+      `\`${queue.formattedCurrentTime} / ${current.formattedDuration}\`` +
+      `${queue.paused ? " ⏸️" : ""} | Request by: ${current.user ?? "Unknown"}`;
+
+    let upNext = upcoming
+      .slice(0, UP_NEXT_COUNT)
+      .map(
+        (song, i) =>
+          `**${i + 1}.** ${songLink(song)} \`${song.formattedDuration}\``,
+      )
+      .join("\n");
+    const hidden = upcoming.length - UP_NEXT_COUNT;
+    if (hidden > 0) {
+      upNext += `\n...and **${hidden}** more song${plural(hidden)}`;
     }
 
-    if (!queue) {
-      return await interaction.reply({
-        embeds: [
-          new EmbedBuilder()
-            .setColor(colors.error)
-            .setDescription(`🚫 | There are no songs in the queue!`),
-        ],
-        ephemeral: true,
-      });
-    }
-
-    const tracks = queue.songs.map(
-      (song, i) => `**${i + 1}** - [${song.name}](${song.url}) | ${
-        song.formattedDuration
-      }
-        Request by: ${song.user}`
-    );
-
-    const songs = queue.songs.length;
-    const nextSongs =
-      songs > 10
-        ? `And **${songs - 10}** more song${songs > 1 ? "s" : ""}...`
-        : `Playlist **${songs}** song${songs > 1 ? "s" : ""}...`;
-
-    interaction.reply({
+    await interaction.reply({
       embeds: [
         new EmbedBuilder()
           .setColor(colors.info)
-          .setAuthor({
-            name: "Queue",
-            iconURL: client.user.displayAvatarURL(),
-          })
-          .setDescription(`${tracks.slice(0, 10).join("\n")}\n\n${nextSongs}`)
-          .addFields([
+          .setAuthor({ name: "Queue", iconURL: client.user.displayAvatarURL() })
+          .addFields(
+            { name: "▶️ Now playing", value: nowPlaying.slice(0, 1024) },
             {
-              name: "> Playing:",
-              value: `[${queue.songs[0].name}](${queue.songs[0].url}) - ${queue.songs[0].formattedDuration} | Request by: ${queue.songs[0].user}`,
+              name: "⏭️ Up next",
+              value: (upNext || "Nothing else queued").slice(0, 1024),
+            },
+            { name: "Songs", value: `${queue.songs.length}`, inline: true },
+            {
+              name: "Total time",
+              value: queue.formattedDuration,
               inline: true,
             },
             {
-              name: "> Total times:",
-              value: `${queue.formattedDuration}`,
+              name: "Repeat",
+              value: REPEAT_LABELS[queue.repeatMode],
               inline: true,
             },
-            {
-              name: "> Total songs:",
-              value: `${songs}`,
-              inline: true,
-            },
-          ]),
+          ),
       ],
     });
   },
