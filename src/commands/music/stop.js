@@ -16,9 +16,11 @@ module.exports = {
       return;
     }
 
+    // DisTube waits for any song that's still loading, which can exceed 3s.
+    await interaction.deferReply();
     await voice.queue.stop();
     client.distube.voices.leave(interaction.guildId);
-    await interaction.reply({
+    await interaction.editReply({
       embeds: [statusEmbed(colors.info, "🔇 | Stopped playing music!")],
     });
   },

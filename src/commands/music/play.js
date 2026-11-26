@@ -1,7 +1,7 @@
 const { SlashCommandBuilder, MessageFlags, InteractionContextType } = require("discord.js");
 const colors = require("../../config/colors");
 const { statusEmbed } = require("../../config/embeds");
-const { ensureVoice, hasDJ } = require("../../utils/musicUtils");
+const { ensureVoice } = require("../../utils/musicUtils");
 
 module.exports = {
   category: "Music",
@@ -18,7 +18,7 @@ module.exports = {
 
   async execute(interaction, client) {
     const voice = await ensureVoice(interaction, client, { requireQueue: false });
-    if (!voice || !(await hasDJ(interaction))) {
+    if (!voice) {
       return;
     }
 

@@ -15,13 +15,15 @@ module.exports = {
       return;
     }
 
+    // DisTube waits for any song that's still loading, which can exceed 3s.
+    await interaction.deferReply();
     try {
       await voice.queue.previous();
     } catch {
       return replyError(interaction, "The previous song in the playlist cannot be played back!");
     }
 
-    await interaction.reply({
+    await interaction.editReply({
       embeds: [
         new EmbedBuilder()
           .setColor(colors.success)

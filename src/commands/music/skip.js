@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, InteractionContextType } = require("discord.js");
+const { RepeatMode } = require("distube");
 const colors = require("../../config/colors");
 const { statusEmbed } = require("../../config/embeds");
 const { ensureVoice } = require("../../utils/musicUtils");
@@ -17,15 +18,26 @@ module.exports = {
     }
     const { queue } = voice;
 
-    if (queue.songs.length <= 1 && !queue.autoplay) {
-      await queue.stop();
-      client.distube.voices.leave(interaction.guildId);
-      return interaction.reply({
-        embeds: [statusEmbed(colors.error, "🚫 | There are no more songs in the queue!")],
+    // DisTube waits for any song that's still loading, which can exceed 3s.
+    await interaction.deferReply();
+
+    if (queue.songs.length > 1 || queue.autoplay) {
+      await queue.skip();
+      return interaction.editReply({ embeds: [statusEmbed(colors.info, "⏩ | Skipped!")] });
+    }
+
+    // Last song in the queue: with "Repeat song list" on, loop back to its start.
+    if (queue.repeatMode === RepeatMode.QUEUE) {
+      await queue.seek(0);
+      return interaction.editReply({
+        embeds: [statusEmbed(colors.info, "🔁 | Skipped! Starting the playlist again.")],
       });
     }
 
-    await queue.skip();
-    await interaction.reply({ embeds: [statusEmbed(colors.info, "⏩ | Skipped!")] });
+    await queue.stop();
+    client.distube.voices.leave(interaction.guildId);
+    await interaction.editReply({
+      embeds: [statusEmbed(colors.info, "⏹️ | That was the last song, so I stopped playing.")],
+    });
   },
 };

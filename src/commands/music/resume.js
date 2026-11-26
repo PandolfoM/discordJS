@@ -18,8 +18,10 @@ module.exports = {
       return replyError(interaction, "The song is not paused!");
     }
 
+    // DisTube waits for any song that's still loading, which can exceed 3s.
+    await interaction.deferReply();
     await voice.queue.resume();
-    await interaction.reply({
+    await interaction.editReply({
       embeds: [
         new EmbedBuilder()
           .setColor(colors.info)
