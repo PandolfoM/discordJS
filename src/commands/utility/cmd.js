@@ -1,5 +1,6 @@
+const path = require("node:path");
 const { promisify } = require("node:util");
-const exec = promisify(require("node:child_process").exec);
+const execFile = promisify(require("node:child_process").execFile);
 const {
   SlashCommandBuilder,
   PermissionFlagsBits,
@@ -10,13 +11,11 @@ const colors = require("../../config/colors");
 const logger = require("../../utils/logger");
 const { errorEmbed } = require("../../config/embeds");
 
-const SCRIPTS = {
-  pm2: "../pm2_expect.sh",
-  main: "../gitmain_expect.sh",
-  develop: "../gitdevelop_expect.sh",
-};
+const PROJECT_ROOT = path.join(__dirname, "..", "..", "..");
+const BRANCHES = ["main", "develop"];
 
 const info = (title) => ({ embeds: [{ color: colors.info, title }] });
+const git = (...args) => execFile("git", args, { cwd: PROJECT_ROOT });
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -26,9 +25,7 @@ module.exports = {
       subcommand.setName("gitpull").setDescription("Git pull"),
     )
     .addSubcommand((subcommand) =>
-      subcommand
-        .setName("pm2")
-        .setDescription("Runs the reload sequence for pm2"),
+      subcommand.setName("pm2").setDescription("Restart the bot with pm2"),
     )
     .addSubcommand((subcommand) =>
       subcommand
@@ -54,26 +51,42 @@ module.exports = {
     try {
       if (subcommand === "gitpull") {
         // git writes progress to stderr on success, so only the exit code matters.
-        const { stdout } = await exec("git pull");
+        const { stdout } = await git("pull");
         return interaction.editReply(
           info(
             stdout.includes("Already up to date")
               ? "Already up to date"
-              : "Pull Successful",
+              : "Pull Successful. Use /cmd pm2 to restart with the changes.",
           ),
         );
       }
 
       if (subcommand === "pm2") {
-        // pm2 reload restarts this process, so reply before running it.
-        await interaction.editReply(info("Reloading..."));
-        await exec(SCRIPTS.pm2);
+        // pm2 sets pm_id for the processes it manages.
+        const pmId = process.env.pm_id;
+        if (pmId === undefined) {
+          return interaction.editReply({
+            embeds: [
+              { color: colors.error, title: "The bot isn't running under pm2" },
+            ],
+          });
+        }
+        // Reloading restarts this process, so reply before running it.
+        await interaction.editReply(info("Restarting..."));
+        await execFile("pm2", ["reload", pmId]);
         return;
       }
 
       const branch = interaction.options.getString("branch");
-      await exec(SCRIPTS[branch]);
-      await interaction.editReply(info(`Checked out ${branch}`));
+      if (!BRANCHES.includes(branch)) {
+        throw new Error(`Unexpected branch: ${branch}`);
+      }
+      await git("fetch", "origin");
+      await git("checkout", branch);
+      await git("pull", "origin", branch);
+      await interaction.editReply(
+        info(`Checked out ${branch}. Use /cmd pm2 to restart with it.`),
+      );
     } catch (error) {
       logger(error.stderr || error.message);
       await interaction.editReply({ embeds: [errorEmbed] });
