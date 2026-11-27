@@ -2,9 +2,11 @@ const {
   EmbedBuilder,
   SlashCommandBuilder,
   InteractionContextType,
+  escapeMarkdown,
 } = require("discord.js");
 const colors = require("../../config/colors");
-const { ensureVoice } = require("../../utils/musicUtils");
+const { ensureVoice, replyError } = require("../../utils/musicUtils");
+const { safeUrl, songLink } = require("../../utils/songLink");
 
 const BAR_LENGTH = 15;
 
@@ -32,6 +34,9 @@ module.exports = {
 
     const { queue } = voice;
     const song = queue.songs[0];
+    if (!song) {
+      return replyError(interaction, "There is nothing playing!");
+    }
     const progress = song.isLive
       ? "🔴 Live"
       : `${progressBar(queue.currentTime, song.duration)}\n` +
@@ -45,12 +50,15 @@ module.exports = {
             name: queue.paused ? "Paused" : "Now playing",
             iconURL: client.user.displayAvatarURL(),
           })
-          .setDescription(`> [**${song.name}**](${song.url})\n\n${progress}`)
-          .setThumbnail(song.thumbnail ?? null)
+          .setDescription(`> ${songLink(song, { bold: true })}\n\n${progress}`)
+          .setThumbnail(safeUrl(song.thumbnail))
           .addFields(
             {
               name: "🎵 By",
-              value: song.uploader?.name || "Unknown",
+              value: escapeMarkdown(song.uploader?.name || "Unknown").slice(
+                0,
+                1024,
+              ),
               inline: true,
             },
             {
