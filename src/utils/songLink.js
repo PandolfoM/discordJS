@@ -17,9 +17,15 @@ const safeUrl = (raw) => {
  * link http(s) URLs.
  */
 function songLink(song, { bold = false } = {}) {
-  const name = escapeMarkdown(
-    String(song.name ?? "Unknown").slice(0, MAX_NAME),
-  ).replace(/[[\]]/g, (bracket) => `\\${bracket}`);
+  // Collapse newlines too, so a name can't fake extra lines in the message.
+  const plain = String(song.name ?? "Unknown")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, MAX_NAME);
+  const name = escapeMarkdown(plain || "Unknown").replace(
+    /[[\]]/g,
+    (bracket) => `\\${bracket}`,
+  );
   const text = bold ? `**${name}**` : name;
   const url = safeUrl(song.url);
   // encodeURIComponent leaves ( and ) alone, and ) would end the link.
