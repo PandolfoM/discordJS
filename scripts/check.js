@@ -1,13 +1,14 @@
 /**
  * Pre-flight check without connecting to Discord: every command and event
  * loads and is well-formed, command definitions pass discord.js validation,
- * ffmpeg is present, and required .env values are set.
+ * ffmpeg runs, and required .env values are set.
  *
  *   npm run check
  */
 require("dotenv").config({ quiet: true });
 
 const fs = require("node:fs");
+const { spawnSync } = require("node:child_process");
 const path = require("node:path");
 
 const SRC = path.join(__dirname, "..", "src");
@@ -82,9 +83,20 @@ function checkEnvironment() {
     }
   }
 
-  const ffmpegPath = require("ffmpeg-static");
-  if (!ffmpegPath || !fs.existsSync(ffmpegPath)) {
-    errors.push("ffmpeg-static binary is missing; run `npm ci` again");
+  // Same lookup as src/distube/index.js.
+  const ffmpegPath = process.env.FFMPEG_PATH || require("ffmpeg-static");
+  const source = process.env.FFMPEG_PATH ? "FFMPEG_PATH" : "ffmpeg-static";
+  const result = ffmpegPath
+    ? spawnSync(ffmpegPath, ["-version"], { timeout: 10000 })
+    : { error: new Error("no binary for this platform") };
+  if (result.error || result.status !== 0) {
+    const reason =
+      result.error?.message ??
+      (result.signal ? `killed by ${result.signal}` : `exit ${result.status}`);
+    errors.push(
+      `ffmpeg (${source}: ${ffmpegPath}) doesn't run: ${reason}. ` +
+        "Install ffmpeg and set FFMPEG_PATH in .env (e.g. /usr/bin/ffmpeg).",
+    );
   }
 }
 

@@ -13,7 +13,9 @@ const IDLE_LEAVE_MS = 60 * 1000;
 const formatNumber = new Intl.NumberFormat();
 
 client.distube = new DisTube(client, {
-  ffmpeg: { path: ffmpegPath },
+  // FFMPEG_PATH lets a server use its own ffmpeg when the bundled build
+  // doesn't run there.
+  ffmpeg: { path: process.env.FFMPEG_PATH || ffmpegPath },
   nsfw: true,
   emitNewSongOnly: true,
   // "Now playing" already announces the first song of a new queue.
