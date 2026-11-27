@@ -13,6 +13,8 @@ const { errorEmbed } = require("../../config/embeds");
 
 const PROJECT_ROOT = path.join(__dirname, "..", "..", "..");
 const BRANCHES = ["main", "develop"];
+// Only the bot owner can update or restart the bot, not every server admin.
+const OWNER_ID = "248910149442338816";
 
 const info = (title) => ({ embeds: [{ color: colors.info, title }] });
 const git = (...args) => execFile("git", args, { cwd: PROJECT_ROOT });
@@ -45,6 +47,14 @@ module.exports = {
     .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
     .setContexts(InteractionContextType.Guild),
   async execute(interaction) {
+    if (interaction.user.id !== OWNER_ID) {
+      return interaction.reply({
+        embeds: [
+          { color: colors.error, title: "Only the bot owner can use /cmd" },
+        ],
+        flags: MessageFlags.Ephemeral,
+      });
+    }
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
     const subcommand = interaction.options.getSubcommand();
 
