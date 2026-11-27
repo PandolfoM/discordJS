@@ -7,6 +7,7 @@ const ffmpegPath = require("ffmpeg-static");
 const { client } = require("../bot");
 const colors = require("../config/colors");
 const { statusEmbed } = require("../config/embeds");
+const { musicControls } = require("../utils/musicButtons");
 const logger = require("../utils/logger");
 
 const DEFAULT_VOLUME = 20;
@@ -33,10 +34,21 @@ client.distube = new DisTube(client, {
   ],
 });
 
-const send = (queue, embed) =>
-  queue.textChannel?.send({ embeds: [embed] }).catch((error) => {
+const send = (queue, embed, components = []) =>
+  queue.textChannel?.send({ embeds: [embed], components }).catch((error) => {
     logger("Failed to send DisTube message:", error);
   });
+
+// The latest "Now playing" message per guild. Its buttons are removed once the
+// song changes or the queue ends, so only the current one has controls.
+const nowPlayingMessages = new Map();
+
+function clearControls(guildId) {
+  const message = nowPlayingMessages.get(guildId);
+  nowPlayingMessages.delete(guildId);
+  // The message may already be deleted; nothing to do then.
+  message?.edit({ components: [] }).catch(() => null);
+}
 
 const queueFooter = (queue) => ({
   text: `${formatNumber.format(queue.songs.length)} songs in queue`,
@@ -154,9 +166,10 @@ client.distube
         .setFooter(queueFooter(queue)),
     ),
   )
-  .on("playSong", (queue, song) => {
+  .on("playSong", async (queue, song) => {
     cancelIdleLeave(queue.id);
-    send(
+    clearControls(queue.id);
+    const message = await send(
       queue,
       new EmbedBuilder()
         .setColor(colors.success)
@@ -170,8 +183,13 @@ client.distube
           { name: "👌 | Request by", value: `${song.user ?? "Unknown"}` },
         )
         .setFooter(queueFooter(queue)),
+      musicControls(),
     );
+    if (message) {
+      nowPlayingMessages.set(queue.id, message);
+    }
   })
+  .on("deleteQueue", (queue) => clearControls(queue.id))
   .on("error", (error, queue) => {
     logger("DisTube error:", error);
     if (queue) {
