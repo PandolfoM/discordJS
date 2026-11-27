@@ -13,11 +13,14 @@ const MAX_LYRICS = 4000; // embed descriptions max out at 4096
 const DURATION_TOLERANCE = 5; // seconds
 
 /**
- * Turns a YouTube-style title into a search query, e.g.
- * "Morgan Wallen - Missing (Official Lyric Video) [HD]" -> "Morgan Wallen - Missing".
+ * Search queries for a song, best first, built from its title only (uploader
+ * names like "Atlantic Records and Morgan Wallen" make searches miss), e.g.
+ * "Morgan Wallen – Missing (Official Lyric Video) [HD]" ->
+ * ["Morgan Wallen - Missing", "Missing"].
  */
-function searchQuery(song) {
+function searchQueries(song) {
   const title = song.name
+    .replace(/\s*[–—-]\s+/g, " - ")
     .replace(/\([^)]*\)|\[[^\]]*\]/g, " ")
     .replace(/\s[|]\s.*$/, " ")
     .replace(
@@ -26,14 +29,16 @@ function searchQuery(song) {
     )
     .replace(/\s+/g, " ")
     .trim();
-  const artist = (song.uploader?.name ?? "")
-    .replace(/\s*-\s*Topic$|VEVO$|\bofficial\b/gi, "")
-    .trim();
-  // "Artist - Title" already names the artist; otherwise add the uploader.
-  return title.includes(" - ") || !artist ? title : `${artist} ${title}`;
+  // For "Artist - Song", fall back to just the song name.
+  const songName = title.split(" - ").at(-1).trim();
+  return [...new Set([title, songName])].filter(Boolean);
 }
 
-async function findLyrics(query, duration) {
+/**
+ * Searches LRCLIB. `hint` (the song title and uploader) only ranks results:
+ * one whose artist appears in it wins over odd uploads of the same song.
+ */
+async function findLyrics(query, duration, hint = "") {
   const response = await fetch(`${API}?q=${encodeURIComponent(query)}`, {
     headers: { "User-Agent": "epicans-discord-bot" },
     signal: AbortSignal.timeout(10_000),
@@ -50,12 +55,20 @@ async function findLyrics(query, duration) {
       )
     : [];
   const candidates = sameLength.length ? sameLength : results;
-  return candidates.find((r) => !/[([]| - /.test(r.trackName)) ?? candidates[0];
+  const clean = candidates.filter((r) => !/[([]| - /.test(r.trackName));
+  const lowerHint = hint.toLowerCase();
+  return (
+    clean.find(
+      (r) => r.artistName && lowerHint.includes(r.artistName.toLowerCase()),
+    ) ??
+    clean[0] ??
+    candidates[0]
+  );
 }
 
 module.exports = {
   category: "Music",
-  searchQuery,
+  searchQueries,
   data: new SlashCommandBuilder()
     .setName("lyrics")
     .setDescription("Show the lyrics of the current song, or search for a song")
@@ -78,8 +91,19 @@ module.exports = {
     }
 
     await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-    const query = search ?? searchQuery(current);
-    const result = await findLyrics(query, search ? null : current.duration);
+    const queries = search ? [search] : searchQueries(current);
+    const duration = search ? null : current.duration;
+    const hint = search
+      ? ""
+      : `${current.name} ${current.uploader?.name ?? ""}`;
+    let result;
+    for (const query of queries) {
+      result = await findLyrics(query, duration, hint);
+      if (result) {
+        break;
+      }
+    }
+    const query = queries[0];
     if (!result) {
       return replyError(
         interaction,
