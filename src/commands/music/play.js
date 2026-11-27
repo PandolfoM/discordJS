@@ -6,6 +6,7 @@ const {
 const colors = require("../../config/colors");
 const { statusEmbed } = require("../../config/embeds");
 const { ensureVoice } = require("../../utils/musicUtils");
+const logger = require("../../utils/logger");
 
 module.exports = {
   category: "Music",
@@ -43,7 +44,7 @@ module.exports = {
         embeds: [statusEmbed(colors.success, "🔍 | Successful search!")],
       });
     } catch (error) {
-      console.error("Play error:", error);
+      logger("Play error:", error);
       await interaction.editReply({
         embeds: [
           statusEmbed(

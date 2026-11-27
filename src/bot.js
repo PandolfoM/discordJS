@@ -2,6 +2,7 @@ require("dotenv").config({ quiet: true });
 
 const path = require("node:path");
 const { Client, Collection, GatewayIntentBits } = require("discord.js");
+const logger = require("./utils/logger");
 
 const client = new Client({
   intents: [
@@ -26,7 +27,7 @@ const loadEvents = require("./functions/handleEvents");
 const loadCommands = require("./functions/handleCommands");
 
 process.on("unhandledRejection", (error) => {
-  console.error("Unhandled promise rejection:", error);
+  logger("Unhandled promise rejection:", error);
 });
 
 loadEvents(client, path.join(__dirname, "events"));

@@ -1,5 +1,6 @@
 const fs = require("node:fs");
 const path = require("node:path");
+const logger = require("../utils/logger");
 
 module.exports = (client, eventsDir) => {
   const files = fs
@@ -12,7 +13,7 @@ module.exports = (client, eventsDir) => {
       try {
         await event.execute(...args, client);
       } catch (error) {
-        console.error(`Error in "${event.name}" handler (${file}):`, error);
+        logger(`Error in "${event.name}" handler (${file}):`, error);
       }
     };
 

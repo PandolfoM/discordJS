@@ -1,6 +1,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { REST, Routes } = require("discord.js");
+const logger = require("../utils/logger");
 
 module.exports = async (client, commandsDir) => {
   const body = [];
@@ -39,6 +40,6 @@ module.exports = async (client, commandsDir) => {
     );
     console.log("Successfully reloaded application (/) commands.");
   } catch (error) {
-    console.error("Failed to register application commands:", error);
+    logger("Failed to register application commands:", error);
   }
 };
