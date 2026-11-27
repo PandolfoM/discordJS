@@ -9,6 +9,19 @@ const { ensureVoice, replyError } = require("../../utils/musicUtils");
 const { safeUrl, songLink } = require("../../utils/songLink");
 
 const BAR_LENGTH = 15;
+const MAX_NAME = 200;
+
+/** Uploader names come from YouTube/Spotify: show them as plain text only. */
+function plainText(value) {
+  const text = String(value ?? "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, MAX_NAME);
+  return (
+    escapeMarkdown(text).replace(/[[\]]/g, (bracket) => `\\${bracket}`) ||
+    "Unknown"
+  );
+}
 
 /** Text progress bar, e.g. ▬▬▬▬🔘▬▬▬▬▬▬▬▬▬▬ */
 function progressBar(current, total) {
@@ -55,10 +68,7 @@ module.exports = {
           .addFields(
             {
               name: "🎵 By",
-              value: escapeMarkdown(song.uploader?.name || "Unknown").slice(
-                0,
-                1024,
-              ),
+              value: plainText(song.uploader?.name),
               inline: true,
             },
             {
