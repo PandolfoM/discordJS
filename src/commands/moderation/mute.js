@@ -36,7 +36,7 @@ module.exports = {
     .addStringOption((option) =>
       option.setName("reason").setDescription("Reason for mute"),
     )
-    .setDefaultMemberPermissions(PermissionFlagsBits.MuteMembers)
+    .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers)
     .setContexts(InteractionContextType.Guild),
   async execute(interaction) {
     const member = interaction.options.getMember("target");
@@ -47,16 +47,31 @@ module.exports = {
     if (!member) {
       return replyError(interaction, "Invalid User");
     }
+    if (member.id === interaction.user.id) {
+      return replyError(interaction, "You can't mute yourself");
+    }
+    // Moderators can only mute members ranked below them (the owner can mute anyone).
+    const invoker = interaction.member;
+    const isOwner = interaction.guild.ownerId === invoker.id;
+    if (
+      !isOwner &&
+      invoker.roles.highest.comparePositionTo(member.roles.highest) <= 0
+    ) {
+      return replyError(
+        interaction,
+        "You can't mute someone with an equal or higher role",
+      );
+    }
     if (!member.moderatable) {
-      return replyError(interaction, "Not enough permission");
+      return replyError(interaction, "I don't have permission to mute them");
     }
 
     const duration = minutes * 60 * 1000;
     try {
       await member.timeout(duration, reason);
     } catch (error) {
-      logger(error);
-      return replyError(interaction, "Not enough permission");
+      logger("Mute failed:", error);
+      return replyError(interaction, "I don't have permission to mute them");
     }
 
     const muteEnd = Math.floor((Date.now() + duration) / 1000);
