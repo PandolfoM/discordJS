@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, InteractionContextType } = require("discord.js");
 const colors = require("../../config/colors");
 const { statusEmbed } = require("../../config/embeds");
+const { songLink } = require("../../utils/songLink");
 const {
   ensureVoice,
   positionError,
@@ -38,10 +39,7 @@ module.exports = {
     const song = await queue.jump(position);
     await interaction.editReply({
       embeds: [
-        statusEmbed(
-          colors.success,
-          `⏭️ | Jumped to [${song.name}](${song.url}).`,
-        ),
+        statusEmbed(colors.success, `⏭️ | Jumped to ${songLink(song)}.`),
       ],
     });
   },

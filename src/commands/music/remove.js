@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, InteractionContextType } = require("discord.js");
 const colors = require("../../config/colors");
 const { statusEmbed } = require("../../config/embeds");
+const { songLink } = require("../../utils/songLink");
 const {
   ensureVoice,
   positionError,
@@ -38,7 +39,7 @@ module.exports = {
       embeds: [
         statusEmbed(
           colors.success,
-          `🗑️ | Removed [${song.name}](${song.url}) from the queue.`,
+          `🗑️ | Removed ${songLink(song)} from the queue.`,
         ),
       ],
     });

@@ -1,6 +1,7 @@
 const { SlashCommandBuilder, InteractionContextType } = require("discord.js");
 const colors = require("../../config/colors");
 const { statusEmbed } = require("../../config/embeds");
+const { songLink } = require("../../utils/songLink");
 const {
   ensureVoice,
   positionError,
@@ -42,7 +43,7 @@ module.exports = {
       embeds: [
         statusEmbed(
           colors.success,
-          `↕️ | Moved [${song.name}](${song.url}) to position ${to}.`,
+          `↕️ | Moved ${songLink(song)} to position ${to}.`,
         ),
       ],
     });
