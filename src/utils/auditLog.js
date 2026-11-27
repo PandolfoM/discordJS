@@ -28,11 +28,13 @@ const isLoggedGuild = (guildId) =>
 /**
  * Whether a message's channel should be logged. Skips the log and music
  * channels and any in AUDIT_IGNORE_CHANNEL_IDS (comma-separated, e.g. private
- * channels the log channel's viewers shouldn't read). Threads follow their
- * parent channel.
+ * channels the log channel's viewers shouldn't read). An ignored category
+ * covers its channels, and an ignored channel covers its threads. Fails
+ * closed: a message whose channel isn't known is not logged.
  */
 function isLoggedChannel(message) {
-  if (!isLoggedGuild(message.guildId)) {
+  const { channel } = message;
+  if (!isLoggedGuild(message.guildId) || !channel) {
     return false;
   }
   const ignored = new Set(
@@ -44,10 +46,14 @@ function isLoggedChannel(message) {
       .map((id) => id?.trim())
       .filter(Boolean),
   );
-  const parentId = message.channel?.isThread?.()
-    ? message.channel.parentId
-    : null;
-  return !ignored.has(message.channelId) && !ignored.has(parentId);
+  // The channel, its parent (a thread's channel, or a channel's category) and
+  // that parent's category.
+  const ancestors = [
+    message.channelId,
+    channel.parentId,
+    channel.parent?.parentId,
+  ];
+  return !ancestors.some((id) => id && ignored.has(id));
 }
 
 /** Posts an embed to the log channel. Never throws. */

@@ -13,16 +13,16 @@
 
 ## Configuration (`.env`)
 
-| Variable                                   | Purpose                                                                                |
-| ------------------------------------------ | -------------------------------------------------------------------------------------- |
-| `TOKEN`                                    | Discord bot token                                                                      |
-| `CLIENTID`                                 | Bot application ID                                                                     |
-| `GUILDID`                                  | Server the slash commands are registered to                                            |
-| `OPENAI_KEY`                               | API key for `/chatgpt`                                                                 |
-| `SPOTIFTYCLIENTID`, `SPOTIFTYCLIENTSECRET` | Spotify app credentials for playing Spotify links                                      |
-| `MUSIC_CHANNEL_ID`                         | `/play` only works in this channel (optional)                                          |
-| `DEV_CHANNEL_ID`                           | `/play` also works here, for testing (optional)                                        |
-| `DJ_ROLE_ID`                               | Only members with this role can use `/play` (optional)                                 |
-| `AUDIT_IGNORE_CHANNEL_IDS`                 | Comma-separated channels to leave out of the message log, e.g. private ones (optional) |
+| Variable                                   | Purpose                                                                                              |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| `TOKEN`                                    | Discord bot token                                                                                    |
+| `CLIENTID`                                 | Bot application ID                                                                                   |
+| `GUILDID`                                  | Server the slash commands are registered to                                                          |
+| `OPENAI_KEY`                               | API key for `/chatgpt`                                                                               |
+| `SPOTIFTYCLIENTID`, `SPOTIFTYCLIENTSECRET` | Spotify app credentials for playing Spotify links                                                    |
+| `MUSIC_CHANNEL_ID`                         | `/play` only works in this channel (optional)                                                        |
+| `DEV_CHANNEL_ID`                           | `/play` also works here, for testing (optional)                                                      |
+| `DJ_ROLE_ID`                               | Only members with this role can use `/play` (optional)                                               |
+| `AUDIT_IGNORE_CHANNEL_IDS`                 | Comma-separated channels or categories to leave out of the message log, e.g. private ones (optional) |
 
 Leave an optional variable unset to turn that restriction off. Restart the bot after changing `.env`.
