@@ -88,8 +88,23 @@ async function ensureVoice(
   return { voiceChannel, queue };
 }
 
+/**
+ * True when `position` is a song in the Up next list: 1 is the next song,
+ * matching the numbers /queue shows (queue.songs[0] is the current song).
+ */
+const upNextPosition = (queue, position) =>
+  Number.isInteger(position) && position >= 1 && position < queue.songs.length;
+
+/** Error text for a position that isn't in the Up next list. */
+const positionError = (queue) =>
+  queue.songs.length < 2
+    ? "There's nothing up next!"
+    : `Pick a position from 1 to ${queue.songs.length - 1} (see /queue).`;
+
 module.exports = {
   ensureVoice,
+  positionError,
+  upNextPosition,
   hasDJ,
   replyError,
 };
