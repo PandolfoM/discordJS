@@ -1,7 +1,7 @@
 const { once } = require("node:events");
 const { codeBlock, Events } = require("discord.js");
 
-const { LOG_CHANNEL_ID } = require("../config/channels");
+const { logChannelId } = require("../config/channels");
 const MAX_LENGTH = 1900;
 
 const READY_TIMEOUT_MS = 60 * 1000;
@@ -53,14 +53,14 @@ async function logger(...parts) {
       });
     }
     const channel =
-      client.channels.cache.get(LOG_CHANNEL_ID) ??
-      (await client.channels.fetch(LOG_CHANNEL_ID));
+      client.channels.cache.get(logChannelId("errors")) ??
+      (await client.channels.fetch(logChannelId("errors")));
     const text = redact(parts.map(format).join(" "));
     await channel.send(codeBlock("js", text.slice(0, MAX_LENGTH)));
   } catch (error) {
     // Console only: logging this through logger() could loop.
     console.error(
-      `Could not send to log channel ${LOG_CHANNEL_ID}:`,
+      `Could not send to log channel ${logChannelId("errors")}:`,
       String(error?.message ?? error),
     );
   }

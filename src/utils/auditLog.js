@@ -1,5 +1,5 @@
 const { escapeMarkdown } = require("discord.js");
-const { LOG_CHANNEL_ID } = require("../config/channels");
+const { allLogChannelIds, logChannelId } = require("../config/channels");
 const logger = require("./logger");
 
 const MAX_FIELD = 1024;
@@ -39,7 +39,7 @@ function isLoggedChannel(message) {
   }
   const ignored = new Set(
     [
-      LOG_CHANNEL_ID,
+      ...allLogChannelIds(),
       process.env.MUSIC_CHANNEL_ID,
       ...(process.env.AUDIT_IGNORE_CHANNEL_IDS ?? "").split(","),
     ]
@@ -56,12 +56,13 @@ function isLoggedChannel(message) {
   return !ancestors.some((id) => id && ignored.has(id));
 }
 
-/** Posts an embed to the log channel. Never throws. */
-async function auditLog(client, embed) {
+/** Posts an embed to the channel for a log type (see /logs). Never throws. */
+async function auditLog(client, type, embed) {
   try {
+    const channelId = logChannelId(type);
     const channel =
-      client.channels.cache.get(LOG_CHANNEL_ID) ??
-      (await client.channels.fetch(LOG_CHANNEL_ID));
+      client.channels.cache.get(channelId) ??
+      (await client.channels.fetch(channelId));
     await channel.send({
       embeds: [embed.setTimestamp()],
       allowedMentions: { parse: [] },

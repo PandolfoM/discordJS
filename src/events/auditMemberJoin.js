@@ -10,6 +10,7 @@ module.exports = {
     }
     await auditLog(
       client,
+      "members",
       new EmbedBuilder()
         .setColor(colors.success)
         .setAuthor({

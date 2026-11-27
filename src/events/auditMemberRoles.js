@@ -42,6 +42,6 @@ module.exports = {
     if (removed.size) {
       embed.addFields({ name: "Removed", value: list(removed) });
     }
-    await auditLog(client, embed);
+    await auditLog(client, "roles", embed);
   },
 };

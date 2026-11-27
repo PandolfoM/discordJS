@@ -26,3 +26,7 @@
 | `AUDIT_IGNORE_CHANNEL_IDS`                 | Comma-separated channels or categories to leave out of the message log, e.g. private ones (optional) |
 
 Leave an optional variable unset to turn that restriction off. Restart the bot after changing `.env`.
+
+## Log channels
+
+Errors, deleted/edited messages, joins/leaves and role changes all go to #epicans-log by default. An admin can send each one to its own channel with `/logs set`, check with `/logs show`, and undo with `/logs reset`. The choices are saved in `.data/settings.json` (not in git), so they survive pulls and deploys.

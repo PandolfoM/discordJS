@@ -30,6 +30,6 @@ module.exports = {
     if (roles) {
       embed.addFields({ name: "Roles", value: roles.slice(0, 1024) });
     }
-    await auditLog(client, embed);
+    await auditLog(client, "members", embed);
   },
 };

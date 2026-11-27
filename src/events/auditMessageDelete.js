@@ -25,6 +25,6 @@ module.exports = {
       });
     }
     embed.setFooter({ text: `User ID: ${message.author.id}` });
-    await auditLog(client, embed);
+    await auditLog(client, "messages", embed);
   },
 };

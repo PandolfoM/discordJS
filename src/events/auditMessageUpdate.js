@@ -19,6 +19,7 @@ module.exports = {
 
     await auditLog(
       client,
+      "messages",
       new EmbedBuilder()
         .setColor(colors.info)
         .setAuthor({
