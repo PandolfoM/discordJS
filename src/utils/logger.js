@@ -10,7 +10,7 @@ const DISCORD_TOKEN = /[\w-]{24,}\.[\w-]{6}\.[\w-]{27,}/g;
 const AUTH_HEADER = /\b(Bearer|Basic|Bot)\s+[\w.~+/=-]{8,}/gi;
 // Keep only scheme + host: signed URLs can carry credentials in the userinfo,
 // path or query.
-const URL_PATTERN = /(https?:\/\/)(?:[^@\s/]*@)?([^\s/?#"'`]+)[^\s"'`]*/g;
+const URL_PATTERN = /(https?:\/\/)(?:[^\s/]*@)?([^\s/?#@"'`]+)[^\s"'`]*/gi;
 
 const format = (part) =>
   part instanceof Error ? (part.stack ?? part.message) : String(part);
