@@ -62,7 +62,8 @@ module.exports = {
     .addStringOption((option) =>
       option
         .setName("song")
-        .setDescription("Song to search for (defaults to the current song)"),
+        .setDescription("Song to search for (defaults to the current song)")
+        .setMaxLength(100),
     )
     .setContexts(InteractionContextType.Guild),
 
@@ -80,7 +81,10 @@ module.exports = {
     const query = search ?? searchQuery(current);
     const result = await findLyrics(query, search ? null : current.duration);
     if (!result) {
-      return replyError(interaction, `No lyrics found for "${query}".`);
+      return replyError(
+        interaction,
+        `No lyrics found for "${escapeMarkdown(query).replace(/[[\]]/g, "\\$&")}".`,
+      );
     }
 
     // Lyrics are user-submitted on LRCLIB: escape markdown so they can't
