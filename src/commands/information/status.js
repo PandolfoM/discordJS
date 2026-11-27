@@ -6,6 +6,7 @@ const {
   SlashCommandBuilder,
   InteractionContextType,
   MessageFlags,
+  PermissionFlagsBits,
   TimestampStyles,
   time,
   version: discordJsVersion,
@@ -15,7 +16,7 @@ const colors = require("../../config/colors");
 const PROJECT_ROOT = path.join(__dirname, "..", "..", "..");
 
 /** "abc1234 (main)", or "unknown" when git isn't available. */
-async function runningCommit() {
+async function readCommit() {
   try {
     const { stdout } = await execFile(
       "git",
@@ -30,12 +31,19 @@ async function runningCommit() {
   }
 }
 
+// Read once: the code running doesn't change until the bot restarts, even if
+// a pull updates the files on disk.
+let commit;
+const runningCommit = () => (commit ??= readCommit());
+
 const megabytes = (bytes) => `${Math.round(bytes / 1024 / 1024)} MB`;
 
 module.exports = {
   data: new SlashCommandBuilder()
     .setName("status")
     .setDescription("Show how the bot is doing: uptime, memory, ping, version")
+    // Versions and the running commit are for admins, not every member.
+    .setDefaultMemberPermissions(PermissionFlagsBits.Administrator)
     .setContexts(InteractionContextType.Guild),
 
   async execute(interaction, client) {
