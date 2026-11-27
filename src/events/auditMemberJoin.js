@@ -1,10 +1,13 @@
 const { EmbedBuilder, Events, TimestampStyles, time } = require("discord.js");
 const colors = require("../config/colors");
-const { auditLog } = require("../utils/auditLog");
+const { auditLog, isLoggedGuild } = require("../utils/auditLog");
 
 module.exports = {
   name: Events.GuildMemberAdd,
   async execute(member, client) {
+    if (!isLoggedGuild(member.guild.id)) {
+      return;
+    }
     await auditLog(
       client,
       new EmbedBuilder()

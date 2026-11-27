@@ -1,6 +1,6 @@
 const { EmbedBuilder, Events } = require("discord.js");
 const colors = require("../config/colors");
-const { auditLog } = require("../utils/auditLog");
+const { auditLog, isLoggedGuild } = require("../utils/auditLog");
 
 const list = (roles) =>
   roles
@@ -11,6 +11,9 @@ const list = (roles) =>
 module.exports = {
   name: Events.GuildMemberUpdate,
   async execute(oldMember, newMember, client) {
+    if (!isLoggedGuild(newMember.guild.id)) {
+      return;
+    }
     // Without the old member cached there's nothing to compare against.
     if (oldMember.partial) {
       return;

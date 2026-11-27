@@ -1,17 +1,12 @@
 const { EmbedBuilder, Events } = require("discord.js");
 const colors = require("../config/colors");
-const { auditLog, isIgnoredChannel, plainText } = require("../utils/auditLog");
+const { auditLog, isLoggedChannel, plainText } = require("../utils/auditLog");
 
 module.exports = {
   name: Events.MessageDelete,
   async execute(message, client) {
     // Uncached messages have no author or content to show.
-    if (
-      !message.author ||
-      message.author.bot ||
-      !message.guild ||
-      isIgnoredChannel(message.channelId)
-    ) {
+    if (!message.author || message.author.bot || !isLoggedChannel(message)) {
       return;
     }
 

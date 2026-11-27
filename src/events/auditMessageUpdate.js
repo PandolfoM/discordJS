@@ -1,6 +1,6 @@
 const { EmbedBuilder, Events } = require("discord.js");
 const colors = require("../config/colors");
-const { auditLog, isIgnoredChannel, plainText } = require("../utils/auditLog");
+const { auditLog, isLoggedChannel, plainText } = require("../utils/auditLog");
 
 module.exports = {
   name: Events.MessageUpdate,
@@ -11,9 +11,8 @@ module.exports = {
       oldMessage.partial ||
       !newMessage.author ||
       newMessage.author.bot ||
-      !newMessage.guild ||
       oldMessage.content === newMessage.content ||
-      isIgnoredChannel(newMessage.channelId)
+      !isLoggedChannel(newMessage)
     ) {
       return;
     }

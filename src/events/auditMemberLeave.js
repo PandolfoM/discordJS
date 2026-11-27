@@ -1,10 +1,13 @@
 const { EmbedBuilder, Events, TimestampStyles, time } = require("discord.js");
 const colors = require("../config/colors");
-const { auditLog } = require("../utils/auditLog");
+const { auditLog, isLoggedGuild } = require("../utils/auditLog");
 
 module.exports = {
   name: Events.GuildMemberRemove,
   async execute(member, client) {
+    if (!isLoggedGuild(member.guild.id)) {
+      return;
+    }
     const roles = member.roles?.cache
       .filter((role) => role.id !== member.guild.id)
       .map((role) => `${role}`)

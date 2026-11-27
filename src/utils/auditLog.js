@@ -18,9 +18,37 @@ function plainText(text, empty = "*(no text)*") {
     : escaped;
 }
 
-/** Channels whose activity isn't worth logging. */
-const isIgnoredChannel = (channelId) =>
-  channelId === LOG_CHANNEL_ID || channelId === process.env.MUSIC_CHANNEL_ID;
+/**
+ * Only log the server the log channel belongs to (GUILDID), so activity from
+ * any other server the bot is in never shows up there.
+ */
+const isLoggedGuild = (guildId) =>
+  Boolean(guildId) && guildId === process.env.GUILDID;
+
+/**
+ * Whether a message's channel should be logged. Skips the log and music
+ * channels and any in AUDIT_IGNORE_CHANNEL_IDS (comma-separated, e.g. private
+ * channels the log channel's viewers shouldn't read). Threads follow their
+ * parent channel.
+ */
+function isLoggedChannel(message) {
+  if (!isLoggedGuild(message.guildId)) {
+    return false;
+  }
+  const ignored = new Set(
+    [
+      LOG_CHANNEL_ID,
+      process.env.MUSIC_CHANNEL_ID,
+      ...(process.env.AUDIT_IGNORE_CHANNEL_IDS ?? "").split(","),
+    ]
+      .map((id) => id?.trim())
+      .filter(Boolean),
+  );
+  const parentId = message.channel?.isThread?.()
+    ? message.channel.parentId
+    : null;
+  return !ignored.has(message.channelId) && !ignored.has(parentId);
+}
 
 /** Posts an embed to the log channel. Never throws. */
 async function auditLog(client, embed) {
@@ -37,4 +65,4 @@ async function auditLog(client, embed) {
   }
 }
 
-module.exports = { auditLog, isIgnoredChannel, plainText };
+module.exports = { auditLog, isLoggedChannel, isLoggedGuild, plainText };
