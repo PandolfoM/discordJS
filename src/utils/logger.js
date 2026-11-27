@@ -10,7 +10,17 @@ const DISCORD_TOKEN = /[\w-]{24,}\.[\w-]{6}\.[\w-]{27,}/g;
 const AUTH_HEADER = /\b(Bearer|Basic|Bot)\s+[\w.~+/=-]{8,}/gi;
 // Keep only scheme + host: signed URLs can carry credentials in the userinfo,
 // path or query.
-const URL_PATTERN = /(https?:\/\/)(?:[^\s/]*@)?([^\s/?#@"'`]+)[^\s"'`]*/gi;
+const URL_PATTERN = /https?:\/\/[^\s"'`]+/gi;
+
+// Rebuild from the parsed URL so no raw piece of the original can slip through.
+function shortenUrl(raw) {
+  try {
+    const { protocol, host } = new URL(raw);
+    return `${protocol}//${host}/…`;
+  } catch {
+    return "<url>";
+  }
+}
 
 const format = (part) =>
   part instanceof Error ? (part.stack ?? part.message) : String(part);
@@ -31,7 +41,7 @@ function redact(text) {
     }
   }
   return result
-    .replace(URL_PATTERN, "$1$2/…")
+    .replace(URL_PATTERN, shortenUrl)
     .replace(AUTH_HEADER, "$1 <redacted>")
     .replace(DISCORD_TOKEN, "<token>");
 }
