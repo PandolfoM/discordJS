@@ -1,7 +1,7 @@
 const { once } = require("node:events");
 const { codeBlock, Events } = require("discord.js");
 
-const LOG_CHANNEL_ID = "1176505370634637372";
+const { LOG_CHANNEL_ID } = require("../config/channels");
 const MAX_LENGTH = 1900;
 
 const READY_TIMEOUT_MS = 60 * 1000;
