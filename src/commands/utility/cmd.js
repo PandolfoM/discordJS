@@ -19,6 +19,9 @@ const OWNER_ID = "248910149442338816";
 const info = (title) => ({ embeds: [{ color: colors.info, title }] });
 const git = (...args) => execFile("git", args, { cwd: PROJECT_ROOT });
 const INSTALL_TIMEOUT_MS = 10 * 60 * 1000;
+// Only one /cmd runs at a time, so a double click can't run two pulls or
+// installs over each other.
+let busy = false;
 
 /** Replies, then reloads this process with pm2. Returns false if not under pm2. */
 async function restart(interaction, message) {
@@ -76,10 +79,20 @@ module.exports = {
         flags: MessageFlags.Ephemeral,
       });
     }
-    await interaction.deferReply({ flags: MessageFlags.Ephemeral });
-    const subcommand = interaction.options.getSubcommand();
+    if (busy) {
+      return interaction.reply({
+        embeds: [
+          { color: colors.error, title: "Another /cmd is still running" },
+        ],
+        flags: MessageFlags.Ephemeral,
+      });
+    }
+    busy = true;
 
     try {
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+      const subcommand = interaction.options.getSubcommand();
+
       if (subcommand === "gitpull") {
         // git writes progress to stderr on success, so only the exit code matters.
         const { stdout } = await git("pull");
@@ -123,10 +136,27 @@ module.exports = {
         );
         if (changed.trim()) {
           await interaction.editReply(info("Installing packages..."));
-          await execFile("npm", ["ci"], {
-            cwd: PROJECT_ROOT,
-            timeout: INSTALL_TIMEOUT_MS,
-          });
+          try {
+            await execFile("npm", ["ci"], {
+              cwd: PROJECT_ROOT,
+              timeout: INSTALL_TIMEOUT_MS,
+            });
+          } catch (error) {
+            // The running bot still has the old packages loaded, but a restart
+            // now would start the new code without them.
+            logger("npm ci failed during /cmd deploy:", error.message);
+            return interaction.editReply({
+              embeds: [
+                {
+                  color: colors.error,
+                  title: "Installing packages failed, so I didn't restart",
+                  description:
+                    `The code is at ${after.slice(0, 7)} but packages aren't ` +
+                    "installed. Run `npm ci` on the server before restarting.",
+                },
+              ],
+            });
+          }
         }
 
         const short = after.slice(0, 7);
@@ -151,6 +181,8 @@ module.exports = {
     } catch (error) {
       logger(error.stderr || error.message);
       await interaction.editReply({ embeds: [errorEmbed] });
+    } finally {
+      busy = false;
     }
   },
 };
