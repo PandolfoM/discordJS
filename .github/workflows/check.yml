@@ -1,0 +1,26 @@
+name: Check
+
+on:
+  pull_request:
+  push:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # check.js only verifies these are set; it never connects to Discord.
+      - run: npm run check
+        env:
+          TOKEN: ci-placeholder
+          CLIENTID: ci-placeholder
+          GUILDID: ci-placeholder
