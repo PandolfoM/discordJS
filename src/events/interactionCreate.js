@@ -1,5 +1,6 @@
 const { Events, MessageFlags } = require("discord.js");
 const { errorEmbed } = require("../config/embeds");
+const logger = require("../utils/logger");
 
 module.exports = {
   name: Events.InteractionCreate,
@@ -10,9 +11,7 @@ module.exports = {
 
     const command = client.commands.get(interaction.commandName);
     if (!command) {
-      console.error(
-        `No command matching "${interaction.commandName}" was found.`,
-      );
+      logger(`No command matching "${interaction.commandName}" was found.`);
       return;
     }
 
@@ -20,10 +19,7 @@ module.exports = {
       try {
         await command.autocomplete?.(interaction);
       } catch (error) {
-        console.error(
-          `Autocomplete error in /${interaction.commandName}:`,
-          error,
-        );
+        logger(`Autocomplete error in /${interaction.commandName}:`, error);
       }
       return;
     }
@@ -31,7 +27,7 @@ module.exports = {
     try {
       await command.execute(interaction, client);
     } catch (error) {
-      console.error(`Error executing /${interaction.commandName}:`, error);
+      logger(`Error executing /${interaction.commandName}:`, error);
       const payload = { embeds: [errorEmbed], flags: MessageFlags.Ephemeral };
       try {
         if (interaction.replied || interaction.deferred) {
@@ -40,7 +36,7 @@ module.exports = {
           await interaction.reply(payload);
         }
       } catch (replyError) {
-        console.error("Failed to send error response:", replyError);
+        logger("Failed to send error response:", replyError);
       }
     }
   },

@@ -7,6 +7,7 @@ const {
 } = require("discord.js");
 const { errorEmbed } = require("../../config/embeds");
 const colors = require("../../config/colors");
+const logger = require("../../utils/logger");
 
 module.exports = {
   data: new SlashCommandBuilder()
@@ -39,7 +40,7 @@ module.exports = {
         flags: MessageFlags.Ephemeral,
       });
     } catch (error) {
-      console.error("Error while purging messages:", error);
+      logger("Error while purging messages:", error);
       await interaction.reply({
         embeds: [errorEmbed],
         flags: MessageFlags.Ephemeral,

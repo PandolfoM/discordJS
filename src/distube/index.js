@@ -7,6 +7,7 @@ const ffmpegPath = require("ffmpeg-static");
 const { client } = require("../bot");
 const colors = require("../config/colors");
 const { statusEmbed } = require("../config/embeds");
+const logger = require("../utils/logger");
 
 const DEFAULT_VOLUME = 20;
 const IDLE_LEAVE_MS = 60 * 1000;
@@ -36,7 +37,7 @@ client.distube = new DisTube(client, {
 
 const send = (queue, embed) =>
   queue.textChannel?.send({ embeds: [embed] }).catch((error) => {
-    console.error("Failed to send DisTube message:", error);
+    logger("Failed to send DisTube message:", error);
   });
 
 const queueFooter = (queue) => ({
@@ -98,7 +99,7 @@ function scheduleIdleLeave(guildId) {
         }
         voice.leave();
       } catch (error) {
-        console.error("Failed to leave idle voice channel:", error);
+        logger("Failed to leave idle voice channel:", error);
       }
     }, IDLE_LEAVE_MS),
   );
@@ -174,7 +175,7 @@ client.distube
     );
   })
   .on("error", (error, queue) => {
-    console.error("DisTube error:", error);
+    logger("DisTube error:", error);
     if (queue) {
       send(
         queue,
